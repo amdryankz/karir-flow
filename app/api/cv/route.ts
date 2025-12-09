@@ -13,7 +13,11 @@ export async function GET() {
             name: true,
           },
         },
-        extractedText: true,
+        extractedText: {
+          select: {
+            content: true,
+          },
+        },
       },
     });
 

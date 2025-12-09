@@ -26,6 +26,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   pdfDocuments  PdfDocument[]
+  questionSets  QuestionSet[]
 
   @@unique([email])
   @@map("user")
@@ -100,4 +101,25 @@ model ExtractedText {
 
   @@index([content(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("extractedText")
+}
+
+model QuestionSet {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description String
+  createdAt   DateTime   @default(now())
+  questions   Question[]
+
+  @@map("questionSet")
+}
+
+model Question {
+  id            String      @id @default(uuid())
+  questionSetId String
+  questionSet   QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  text          String
+  order         Int
+
+  @@map("question")
 }
