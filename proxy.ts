@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import prisma from "./lib/prisma";
 import errorHandler from "./utils/errorHandler";
+import { UnauthorizedError } from "./utils/customError";
 
 interface ILoginInfo {
   session: {
@@ -23,7 +24,7 @@ export async function proxy(req: NextRequest) {
       if (protectedPaths.includes(path)) {
         const cookieStore = await cookies();
         const token = cookieStore.get("better-auth.session_data");
-        if (!token) throw new Error("Unauthorized");
+        if (!token) throw new UnauthorizedError();
 
         const payload = jwt.verify(
           token.value,
@@ -35,7 +36,7 @@ export async function proxy(req: NextRequest) {
             id: payload.session.userId,
           },
         });
-        if (!user) throw new Error("Unauthorized");
+        if (!user) throw new UnauthorizedError();
 
         const newHeader = new Headers(req.headers);
         newHeader.set("x-user-id", user.id);

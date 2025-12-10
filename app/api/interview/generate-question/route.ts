@@ -5,7 +5,9 @@ import errorHandler from "@/utils/errorHandler";
 import z from "zod";
 
 const JobDescSchema = z.object({
-  jobDesc: z.string().min(1, "Job description is required"),
+  jobDesc: z
+    .string("Job description is required")
+    .min(1, "Job description is required"),
 });
 
 export async function POST(req: NextRequest) {
