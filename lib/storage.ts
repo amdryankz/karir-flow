@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -53,5 +54,36 @@ export async function uploadPdfBuffer(
   } catch (error) {
     console.error("❌ Gagal upload ke Backblaze:", error);
     throw new Error("Gagal mengunggah file ke storage");
+  }
+}
+
+/**
+ * Menghapus file PDF dari Backblaze B2 storage
+ * @param pdfUrl - URL atau key dari file yang akan dihapus
+ */
+export async function deletePdfFromStorage(pdfUrl: string): Promise<void> {
+  try {
+    // Extract key dari signed URL atau gunakan langsung jika berupa key
+    let fileKey: string;
+
+    if (pdfUrl.includes("X-Amz-Signature")) {
+      // Jika signed URL, extract key dari URL
+      const url = new URL(pdfUrl);
+      fileKey = url.pathname.substring(1); // Remove leading slash
+    } else {
+      // Jika sudah berupa key
+      fileKey = pdfUrl;
+    }
+
+    const command = new DeleteObjectCommand({
+      Bucket: process.env.B2_BUCKET_NAME,
+      Key: fileKey,
+    });
+
+    await s3Client.send(command);
+    console.log(`✅ File berhasil dihapus: ${fileKey}`);
+  } catch (error) {
+    console.error("❌ Gagal menghapus file dari Backblaze:", error);
+    throw new Error("Gagal menghapus file dari storage");
   }
 }
