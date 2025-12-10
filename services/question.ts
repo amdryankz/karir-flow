@@ -14,6 +14,10 @@ export class QuestionService {
     return await QuestionModel.getQuestionSetsByUserId(userId);
   }
 
+  static async getQuestionSetById(id: string) {
+    return await QuestionModel.getQuestionSetById(id);
+  }
+
   static async generateQuestionsFromAI(
     cvContent: string,
     jobDesc: string

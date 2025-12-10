@@ -16,17 +16,18 @@ datasource db {
 }
 
 model User {
-  id            String        @id
-  name          String
-  email         String
-  emailVerified Boolean       @default(false)
-  image         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  pdfDocuments  PdfDocument[]
-  questionSets  QuestionSet[]
+  id                String             @id
+  name              String
+  email             String
+  emailVerified     Boolean            @default(false)
+  image             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  sessions          Session[]
+  accounts          Account[]
+  pdfDocuments      PdfDocument[]
+  questionSets      QuestionSet[]
+  interviewSessions InterviewSession[]
 
   @@unique([email])
   @@map("user")
@@ -104,12 +105,13 @@ model ExtractedText {
 }
 
 model QuestionSet {
-  id          String     @id @default(uuid())
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  description String
-  createdAt   DateTime   @default(now())
-  questions   Question[]
+  id                String             @id @default(uuid())
+  userId            String
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description       String
+  createdAt         DateTime           @default(now())
+  questions         Question[]
+  interviewSessions InterviewSession[]
 
   @@map("questionSet")
 }
@@ -120,6 +122,50 @@ model Question {
   questionSet   QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
   text          String
   order         Int
+  answers       Answer[]
 
   @@map("question")
+}
+
+enum SpeechPace {
+  TOO_FAST
+  NORMAL
+  TOO_SLOW
+}
+
+enum ConfidenceLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model InterviewSession {
+  id            String      @id @default(uuid())
+  title         String
+  startedAt     DateTime    @default(now())
+  finishedAt    DateTime?
+  totalScore    Int?
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  questionSetId String
+  questionSet   QuestionSet @relation(fields: [questionSetId], references: [id])
+  answers       Answer[]
+
+  @@map("interviewSession")
+}
+
+model Answer {
+  id                 String           @id @default(uuid())
+  transcription      String
+  feedback_content   String?
+  feedback_tone      String?
+  score              Int
+  speech_pace        SpeechPace
+  confidence_level   ConfidenceLevel
+  tips               String?
+  answeredAt         DateTime         @default(now())
+  interviewSessionId String
+  session            InterviewSession @relation(fields: [interviewSessionId], references: [id])
+  questionId         String
+  question           Question         @relation(fields: [questionId], references: [id])
 }

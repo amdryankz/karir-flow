@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       message: "Successfully generate data questions",
-      questionSet: savedQuestionSet,
+      data: savedQuestionSet,
     });
   } catch (err) {
     const { message, status } = errorHandler(err);

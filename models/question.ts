@@ -31,6 +31,14 @@ export class QuestionModel {
     });
   }
 
+  static async getQuestionSetById(id: string) {
+    return await prisma.questionSet.findFirst({
+      where: {
+        id,
+      },
+    });
+  }
+
   static async createQuestionSet(data: QuestionSetData) {
     return await prisma.questionSet.create({
       data: {

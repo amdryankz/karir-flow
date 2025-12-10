@@ -68,7 +68,7 @@ export class CvModel {
         },
       });
 
-      await tx.extractedText.updateMany({
+      await tx.extractedText.update({
         where: {
           documentId: data.documentId,
         },

@@ -16,6 +16,7 @@ export async function proxy(req: NextRequest) {
     const path = req.nextUrl.pathname;
     const protectedPaths = [
       "/api/cv",
+      "/api/interview",
       "/api/interview/question",
       "/api/interview/generate-question",
     ];
