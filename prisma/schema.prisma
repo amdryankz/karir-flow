@@ -5,24 +5,27 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [pg_trgm]
 }
 
 model User {
-  id            String    @id
+  id            String        @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean       @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   sessions      Session[]
   accounts      Account[]
+  pdfDocuments  PdfDocument[]
 
   @@unique([email])
   @@map("user")
@@ -74,4 +77,27 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model PdfDocument {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName      String
+  pdfUrl        String
+  pageCount     Int
+  uploadDate    DateTime       @default(now())
+  extractedText ExtractedText?
+
+  @@map("pdfDocument")
+}
+
+model ExtractedText {
+  id         String      @id @default(uuid())
+  documentId String      @unique
+  document   PdfDocument @relation(fields: [documentId], references: [id])
+  content    String
+
+  @@index([content(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("extractedText")
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "@/lib/auth-client";
+import { useSession, signOut } from "@/lib/authClient";
 import { useEffect } from "react";
 
 export default function DashboardPage() {
