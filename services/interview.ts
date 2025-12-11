@@ -8,12 +8,14 @@ export class InterviewService {
   static async createInterview(
     title: string,
     questionSetId: string,
-    userId: string
+    userId: string,
+    parentId?: string
   ) {
     const dbData: InterviewData = {
       title,
       questionSetId,
       userId,
+      parentId,
     };
 
     return await InterviewModel.createInterview(dbData);

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { jobDesc, title, questionSetId } = body;
+    const { jobDesc, title, questionSetId, parentId } = body;
     const id = req.headers.get("x-user-id") as string;
     let questionSet;
 
@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
     const data = await InterviewService.createInterview(
       title,
       questionSet.id,
-      id
+      id,
+      parentId
     );
 
     return NextResponse.json({

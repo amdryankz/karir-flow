@@ -4,6 +4,7 @@ export interface InterviewData {
   userId: string;
   questionSetId: string;
   title: string;
+  parentId?: string;
 }
 
 export class InterviewModel {

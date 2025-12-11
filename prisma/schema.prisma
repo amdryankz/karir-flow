@@ -140,16 +140,19 @@ enum ConfidenceLevel {
 }
 
 model InterviewSession {
-  id            String      @id @default(uuid())
+  id            String             @id @default(uuid())
   title         String
-  startedAt     DateTime    @default(now())
+  startedAt     DateTime           @default(now())
   finishedAt    DateTime?
   totalScore    Int?
   userId        String
-  user          User        @relation(fields: [userId], references: [id])
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   questionSetId String
-  questionSet   QuestionSet @relation(fields: [questionSetId], references: [id])
+  questionSet   QuestionSet        @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
   answers       Answer[]
+  parentId      String?
+  parent        InterviewSession?  @relation("sessionHistory", fields: [parentId], references: [id], onDelete: SetNull)
+  children      InterviewSession[] @relation("sessionHistory")
 
   @@map("interviewSession")
 }
@@ -166,9 +169,9 @@ model Answer {
   tips               String?
   answeredAt         DateTime         @default(now())
   interviewSessionId String
-  session            InterviewSession @relation(fields: [interviewSessionId], references: [id])
+  session            InterviewSession @relation(fields: [interviewSessionId], references: [id], onDelete: Cascade)
   questionId         String
-  question           Question         @relation(fields: [questionId], references: [id])
+  question           Question         @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("answer")
 }
