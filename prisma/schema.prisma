@@ -157,15 +157,18 @@ model InterviewSession {
 model Answer {
   id                 String           @id @default(uuid())
   transcription      String
-  feedback_content   String?
-  feedback_tone      String?
+  audioUrl           String?
+  feedbackContent    String?
+  feedbackTone       String?
   score              Int
-  speech_pace        SpeechPace
-  confidence_level   ConfidenceLevel
+  speechPace         SpeechPace
+  confidentLevel     ConfidenceLevel
   tips               String?
   answeredAt         DateTime         @default(now())
   interviewSessionId String
   session            InterviewSession @relation(fields: [interviewSessionId], references: [id])
   questionId         String
   question           Question         @relation(fields: [questionId], references: [id])
+
+  @@map("answer")
 }

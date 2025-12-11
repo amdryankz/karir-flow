@@ -1,3 +1,4 @@
+import { ConfidenceLevel, SpeechPace } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 
 export interface QuestionData {
@@ -9,6 +10,19 @@ export interface QuestionSetData {
   userId: string;
   description: string;
   questions: QuestionData[];
+}
+
+export interface AnswerData {
+  transcription: string;
+  audioUrl?: string;
+  feedbackContent: string;
+  feedbackTone: string;
+  score: number;
+  speechPace: SpeechPace;
+  confidentLevel: ConfidenceLevel;
+  tips: string;
+  interviewSessionId: string;
+  questionId: string;
 }
 
 export class QuestionModel {
@@ -33,6 +47,14 @@ export class QuestionModel {
 
   static async getQuestionSetById(id: string) {
     return await prisma.questionSet.findFirst({
+      where: {
+        id,
+      },
+    });
+  }
+
+  static async getQuestionById(id: string) {
+    return await prisma.question.findFirst({
       where: {
         id,
       },
@@ -68,6 +90,12 @@ export class QuestionModel {
       include: {
         extractedText: true,
       },
+    });
+  }
+
+  static async createAnswer(data: AnswerData) {
+    return await prisma.answer.create({
+      data,
     });
   }
 }
