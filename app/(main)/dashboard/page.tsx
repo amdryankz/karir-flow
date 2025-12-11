@@ -9,9 +9,9 @@ export default function DashboardPage() {
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
-    if (!isPending && !session?.user) {
-      router.push("/login");
-    }
+    // if (!isPending && !session?.user) {
+      // router.push("/login");
+    // }
   }, [isPending, session, router]);
 
   if (isPending)
