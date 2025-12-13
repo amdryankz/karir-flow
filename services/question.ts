@@ -5,6 +5,7 @@ import { InterviewModel } from "@/models/interview";
 import { NotFoundError } from "@/utils/customError";
 import z from "zod";
 import { uploadAudioBuffer } from "@/lib/storage";
+import { synthesizeVoice } from "@/services/voice";
 
 const JobDescSchema = z.object({
   jobDesc: z
@@ -67,10 +68,23 @@ export class QuestionService {
 
     const description = `Questions for ${jobDesc.slice(0, 50)}... based on CV.`;
 
-    const questionsData = questions.map((q: string, index: number) => ({
-      text: q,
-      order: index + 1,
-    }));
+    // Generate TTS voice for each question and upload to storage
+    const questionsData = await Promise.all(
+      questions.map(async (q: string, index: number) => {
+        try {
+          const audioBuffer = await synthesizeVoice(q);
+          const voiceUrl = await uploadAudioBuffer(
+            audioBuffer,
+            `question-${index + 1}.mp3`,
+            "audio/mpeg"
+          );
+          return { text: q, order: index + 1, voiceUrl };
+        } catch {
+          // If TTS fails, proceed without voiceUrl
+          return { text: q, order: index + 1 };
+        }
+      })
+    );
 
     const questionSetData: QuestionSetData = {
       userId,
@@ -114,8 +128,8 @@ export class QuestionService {
       "feedback_content": "Feedback on the actual answer content (STAR method)...",
       "feedback_tone": "You spoke a bit too fast and sounded nervous. You used 'umm' 4 times.",
       "score": 8, // Score 1-10
-      "speech_pace": "Too Fast" | "Normal" | "Too Slow",
-      "confidence_level": "High" | "Medium" | "Low"
+      "speech_pace": "TOO_FAST" | "NORMAL" | "TOO_SLOW",
+      "confidence_level": "HIGH" | "MEDIUM" | "LOW"
       "tips": "One specific actionable tip to improve"
     }
     `;
@@ -133,16 +147,7 @@ export class QuestionService {
     const responseText = result.response.text();
     const parsed = JSON.parse(responseText);
 
-    // Map snake_case response to camelCase (return as any for flexibility)
-    return {
-      transcription: parsed.transcription,
-      feedbackContent: parsed.feedback_content,
-      feedbackTone: parsed.feedback_tone,
-      score: parsed.score,
-      speechPace: parsed.speech_pace,
-      confidentLevel: parsed.confidence_level,
-      tips: parsed.tips,
-    } as any;
+    return parsed;
   }
 
   static async createAnswer(
@@ -169,29 +174,17 @@ export class QuestionService {
       question.text
     );
 
-    // Normalize enum values from Gemini response
-    const normalizeSpeechPace = (value: string) => {
-      const upper = value?.toUpperCase().replace(/\s+/g, '_');
-      if (upper === 'TOO_FAST') return 'TOO_FAST';
-      if (upper === 'TOO_SLOW') return 'TOO_SLOW';
-      return 'NORMAL';
-    };
-
-    const normalizeConfidence = (value: string) => {
-      const upper = value?.toUpperCase();
-      if (upper === 'HIGH') return 'HIGH';
-      if (upper === 'LOW') return 'LOW';
-      return 'MEDIUM';
-    };
-
     const dbData: AnswerData = {
       transcription: answer.transcription,
       audioUrl: audioUrl,
       feedbackContent: answer.feedbackContent,
       feedbackTone: answer.feedbackTone,
-      score: typeof answer.score === 'number' ? answer.score : parseInt(answer.score) || 5,
-      speechPace: normalizeSpeechPace(answer.speechPace) as any,
-      confidentLevel: normalizeConfidence(answer.confidentLevel) as any,
+      score:
+        typeof answer.score === "number"
+          ? answer.score
+          : parseInt(answer.score) || 5,
+      speechPace: answer.speechPace,
+      confidentLevel: answer.confidentLevel,
       tips: answer.tips,
       interviewSessionId: interviewSessionId,
       questionId: questionId,
@@ -199,7 +192,6 @@ export class QuestionService {
 
     const createdAnswer = await QuestionModel.createAnswer(dbData);
 
-    // Check if interview is finished
     const interview = await InterviewModel.getById(interviewSessionId);
     if (interview) {
       const questionCount = interview.questionSet.questions.length;

@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 export interface QuestionData {
   text: string;
   order: number;
+  voiceUrl?: string;
 }
 
 export interface QuestionSetData {

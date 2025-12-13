@@ -122,6 +122,7 @@ model Question {
   questionSetId String
   questionSet   QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
   text          String
+  voiceUrl      String?
   order         Int
   answers       Answer[]
 

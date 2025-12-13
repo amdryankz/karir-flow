@@ -7,6 +7,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 
 import { HeaderBreadcrumb } from "@/components/header-breadcrumb"
+import CvGuard from "@/components/cv-guard"
 
 export default function MainLayout({
   children,
@@ -25,7 +26,7 @@ export default function MainLayout({
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-4 overflow-y-auto">
-          {children}
+          <CvGuard>{children}</CvGuard>
         </div>
       </SidebarInset>
     </SidebarProvider>
