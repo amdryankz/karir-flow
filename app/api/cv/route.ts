@@ -2,9 +2,10 @@ import errorHandler from "@/utils/errorHandler";
 import { NextRequest, NextResponse } from "next/server";
 import { CvService } from "@/services/cv";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const data = await CvService.getFirstDocument();
+    const id = req.headers.get("x-user-id") as string;
+    const data = await CvService.getFirstDocument(id);
 
     return NextResponse.json({
       message: "Successfully fetch data CV",
