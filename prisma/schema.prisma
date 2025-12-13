@@ -27,7 +27,7 @@ model User {
   accounts          Account[]
   pdfDocuments      PdfDocument[]
   questionSets      QuestionSet[]
-  interviewSessions Interview
+  interviewSessions InterviewSession[]
   offerLetters  OfferLetter[]
 
   @@unique([email])
