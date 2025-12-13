@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Briefcase,
   FileText,
@@ -10,10 +10,10 @@ import {
   Moon,
   Sun,
   User,
-} from "lucide-react"
-import { useTheme } from "next-themes"
-import { useRouter } from "next/navigation"
-import { signOut, useSession } from "@/lib/authClient"
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import { signOut, useSession } from "@/lib/authClient";
 
 import {
   Sidebar,
@@ -27,13 +27,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,9 +43,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 // Menu items.
 const items = [
@@ -69,27 +69,27 @@ const items = [
     url: "/check-offering",
     icon: FileText,
   },
-]
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { theme, setTheme } = useTheme()
-  const router = useRouter()
-  const { data: session } = useSession()
-  const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
-  const [mounted, setMounted] = React.useState(false)
+  const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const handleLogout = async () => {
-    await signOut()
-    router.push("/login")
-  }
+    await signOut();
+    router.push("/login");
+  };
 
   return (
     <>
@@ -98,13 +98,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
-                <a href="/dashboard">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white text-gray-800">
-                    <Briefcase className="size-4" />
+                <a href="/dashboard" className="flex items-center w-full">
+                  {/* Expanded: dashboard banner logo */}
+                  <div className="w-full group-data-[collapsible=icon]:hidden">
+                    {mounted ? (
+                      <img
+                        src={theme === "dark" ? "/logo-dashboard-darkmode.svg" : "/logo-dashboard-lightmode.svg"}
+                        alt="Karir Flow"
+                        className="h-10 w-full object-contain"
+                      />
+                    ) : (
+                      <img
+                        src="/logo-dashboard-lightmode.svg"
+                        alt="Karir Flow"
+                        className="h-10 w-full object-contain"
+                      />
+                    )}
                   </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Karir Flow</span>
-                    <span className="truncate text-xs">Dashboard</span>
+
+                  {/* Collapsed: tab logo */}
+                  <div className="hidden group-data-[collapsible=icon]:inline-flex w-full items-center justify-center">
+                    {mounted ? (
+                      <img
+                        src={theme === "dark" ? "/logo-tab-darkmode.svg" : "/logo-tab.svg"}
+                        alt="Karir Flow"
+                        className="h-8 w-8 object-contain"
+                      />
+                    ) : (
+                      <img
+                        src="/logo-tab.svg"
+                        alt="Karir Flow"
+                        className="h-8 w-8 object-contain"
+                      />
+                    )}
                   </div>
                 </a>
               </SidebarMenuButton>
@@ -135,24 +161,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem className="flex items-center gap-2 p-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-auto w-full justify-start gap-2 px-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                  <Button
+                    variant="ghost"
+                    className="h-auto w-full justify-start gap-2 px-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  >
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || "User"} />
+                      <AvatarImage
+                        src={session?.user?.image || ""}
+                        alt={session?.user?.name || "User"}
+                      />
                       <AvatarFallback className="rounded-lg">
                         {session?.user?.name?.slice(0, 2).toUpperCase() || "CN"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                      <span className="truncate font-semibold">{session?.user?.name || "User"}</span>
-                      <span className="truncate text-xs">{session?.user?.email || "user@example.com"}</span>
+                      <span className="truncate font-semibold">
+                        {session?.user?.name || "User"}
+                      </span>
+                      <span className="truncate text-xs">
+                        {session?.user?.email || "user@example.com"}
+                      </span>
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  side="right"
-                  align="end"
-                  className="w-56"
-                >
+                <DropdownMenuContent side="right" align="end" className="w-56">
                   <DropdownMenuItem onClick={() => router.push("/profile")}>
                     <User className="mr-2 h-4 w-4" />
                     <span>View Profile</span>
@@ -176,17 +208,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to logout?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               You will be redirected to the login page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout}>Continue</AlertDialogAction>
+            <AlertDialogAction onClick={handleLogout}>
+              Continue
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
