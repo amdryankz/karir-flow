@@ -104,7 +104,7 @@ export default function StartInterviewPage() {
 
       if (!interviewRes.ok) {
         const body = await interviewRes.json().catch(() => null)
-        throw new Error(body?.message || "Gagal memulai sesi wawancara")
+        throw new Error(body?.message || "Failed to start interview session")
       }
 
       const { data: interview } = await interviewRes.json()
