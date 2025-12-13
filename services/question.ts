@@ -40,7 +40,7 @@ export class QuestionService {
     Job Description: "${jobDesc.slice(0, 5000)}"
 
     TASK:
-    Generate 5 interview questions specifically tailored to the candidate's experience and the job requirements.
+    Generate 2 interview questions specifically tailored to the candidate's experience and the job requirements.
     Mix technical questions and behavioral questions.
 
     OUTPUT FORMAT:
@@ -68,21 +68,15 @@ export class QuestionService {
 
     const description = `Questions for ${jobDesc.slice(0, 50)}... based on CV.`;
 
-    // Generate TTS voice for each question and upload to storage
     const questionsData = await Promise.all(
       questions.map(async (q: string, index: number) => {
-        try {
-          const audioBuffer = await synthesizeVoice(q);
-          const voiceUrl = await uploadAudioBuffer(
-            audioBuffer,
-            `question-${index + 1}.mp3`,
-            "audio/mpeg"
-          );
-          return { text: q, order: index + 1, voiceUrl };
-        } catch {
-          // If TTS fails, proceed without voiceUrl
-          return { text: q, order: index + 1 };
-        }
+        const audioBuffer = await synthesizeVoice(q);
+        const voiceUrl = await uploadAudioBuffer(
+          audioBuffer,
+          `question-${index + 1}.mp3`,
+          "audio/mpeg"
+        );
+        return { text: q, order: index + 1, voiceUrl };
       })
     );
 
