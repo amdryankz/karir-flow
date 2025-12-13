@@ -84,7 +84,7 @@ export default function StartInterviewPage() {
 
         if (!generateRes.ok) {
           const body = await generateRes.json().catch(() => null)
-          throw new Error(body?.message || "Gagal membuat daftar pertanyaan dari AI")
+          throw new Error(body?.message || "Failed to generate question list from AI")
         }
 
         const { data: questionSet } = await generateRes.json()
