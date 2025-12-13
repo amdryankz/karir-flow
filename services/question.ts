@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { AnswerData, QuestionModel, QuestionSetData } from "@/models/question";
+import { InterviewService } from "@/services/interview";
+import { InterviewModel } from "@/models/interview";
 import { NotFoundError } from "@/utils/customError";
 import z from "zod";
 import { uploadAudioBuffer } from "@/lib/storage";
@@ -129,8 +131,18 @@ export class QuestionService {
     ]);
 
     const responseText = result.response.text();
+    const parsed = JSON.parse(responseText);
 
-    return JSON.parse(responseText);
+    // Map snake_case response to camelCase (return as any for flexibility)
+    return {
+      transcription: parsed.transcription,
+      feedbackContent: parsed.feedback_content,
+      feedbackTone: parsed.feedback_tone,
+      score: parsed.score,
+      speechPace: parsed.speech_pace,
+      confidentLevel: parsed.confidence_level,
+      tips: parsed.tips,
+    } as any;
   }
 
   static async createAnswer(
@@ -157,19 +169,47 @@ export class QuestionService {
       question.text
     );
 
+    // Normalize enum values from Gemini response
+    const normalizeSpeechPace = (value: string) => {
+      const upper = value?.toUpperCase().replace(/\s+/g, '_');
+      if (upper === 'TOO_FAST') return 'TOO_FAST';
+      if (upper === 'TOO_SLOW') return 'TOO_SLOW';
+      return 'NORMAL';
+    };
+
+    const normalizeConfidence = (value: string) => {
+      const upper = value?.toUpperCase();
+      if (upper === 'HIGH') return 'HIGH';
+      if (upper === 'LOW') return 'LOW';
+      return 'MEDIUM';
+    };
+
     const dbData: AnswerData = {
       transcription: answer.transcription,
       audioUrl: audioUrl,
       feedbackContent: answer.feedbackContent,
       feedbackTone: answer.feedbackTone,
-      score: answer.score,
-      speechPace: answer.speechPace,
-      confidentLevel: answer.confidentLevel,
+      score: typeof answer.score === 'number' ? answer.score : parseInt(answer.score) || 5,
+      speechPace: normalizeSpeechPace(answer.speechPace) as any,
+      confidentLevel: normalizeConfidence(answer.confidentLevel) as any,
       tips: answer.tips,
       interviewSessionId: interviewSessionId,
       questionId: questionId,
     };
 
-    return await QuestionModel.createAnswer(dbData);
+    const createdAnswer = await QuestionModel.createAnswer(dbData);
+
+    // Check if interview is finished
+    const interview = await InterviewModel.getById(interviewSessionId);
+    if (interview) {
+      const questionCount = interview.questionSet.questions.length;
+      const answerCount = interview.answers.length;
+
+      if (answerCount >= questionCount) {
+        await InterviewService.finishInterview(interviewSessionId);
+      }
+    }
+
+    return createdAnswer;
   }
 }
