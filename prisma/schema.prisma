@@ -28,6 +28,7 @@ model User {
   pdfDocuments      PdfDocument[]
   questionSets      QuestionSet[]
   interviewSessions InterviewSession[]
+  offerLetters  OfferLetter[]
 
   @@unique([email])
   @@map("user")
@@ -175,4 +176,65 @@ model Answer {
   question           Question         @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("answer")
+}
+
+model OfferLetter {
+  id            String          @id @default(uuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  fileUrl       String
+  status        String // uploaded, analyzed, failed
+  createdAt     DateTime        @default(now())
+  analysis      OfferAnalysis?
+  redFlags      RedFlag[]
+
+  @@map("offerLetter")
+}
+
+model OfferAnalysis {
+  id                   String      @id @default(uuid())
+  offerLetterId        String      @unique
+  offerLetter          OfferLetter @relation(fields: [offerLetterId], references: [id], onDelete: Cascade)
+  
+  baseSalaryAmount     String?
+  bonusPolicy          String?
+  equityValue          String?
+  allowances           String?
+  totalCompensation    String?
+
+  jobTitle             String?
+  employmentType       String?
+  workingHours         String?
+  workLocation         String?
+  startDate            String?
+  probationTerms       String?
+  leavePolicy          String?
+
+  competitivenessScore Int?
+  competitivenessText  String?
+
+  clarityScore         Int?
+  legalComplexity      String?
+  employerFavorability String?
+
+  negotiationItems     String?
+  negotiationPhrases   String?
+
+  missingItems         String?
+
+  analyzedAt           DateTime    @default(now())
+
+  @@map("offerAnalysis")
+}
+
+model RedFlag {
+  id            String      @id @default(uuid())
+  offerLetterId String
+  offerLetter   OfferLetter @relation(fields: [offerLetterId], references: [id], onDelete: Cascade)
+  type          String
+  description   String
+  severity      String // low, medium, high
+
+  @@map("redFlag")
 }
