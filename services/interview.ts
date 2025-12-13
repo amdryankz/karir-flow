@@ -5,6 +5,10 @@ export class InterviewService {
     return await InterviewModel.getAll(userId);
   }
 
+  static async getById(id: string) {
+    return await InterviewModel.getById(id);
+  }
+
   static async createInterview(
     title: string,
     questionSetId: string,
@@ -19,5 +23,20 @@ export class InterviewService {
     };
 
     return await InterviewModel.createInterview(dbData);
+  }
+
+  static async finishInterview(id: string) {
+    const interview = await InterviewModel.getById(id);
+    if (!interview) throw new Error("Interview not found");
+
+    const answers = interview.answers;
+    const totalScore = answers.reduce((sum, a) => sum + a.score, 0);
+    // Score per answer is 1-10. Average * 10 gives 0-100.
+    const avgScore = answers.length > 0 ? Math.round((totalScore / answers.length) * 10) : 0;
+
+    return await InterviewModel.updateInterview(id, {
+      finishedAt: new Date(),
+      totalScore: avgScore,
+    });
   }
 }

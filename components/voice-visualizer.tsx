@@ -14,7 +14,7 @@ export function VoiceVisualizer({ active, className }: VoiceVisualizerProps) {
         <div
           key={i}
           className={cn(
-            "w-3 bg-white rounded-full transition-all duration-300 ease-in-out",
+            "w-3 bg-current rounded-full transition-all duration-300 ease-in-out",
             active ? "animate-voice-bar" : "h-3"
           )}
           style={{

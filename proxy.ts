@@ -19,10 +19,17 @@ export async function proxy(req: NextRequest) {
       "/api/interview",
       "/api/interview/question",
       "/api/interview/generate-question",
+      "/api/interview/answer",
     ];
 
-    if (path.startsWith("/api")) {
-      if (protectedPaths.includes(path)) {
+    // Check if path matches protected patterns
+    const isProtected = protectedPaths.some(protectedPath => 
+      path === protectedPath || 
+      path.startsWith(protectedPath) || 
+      (path.startsWith("/api/interview") && path !== "/api/interview" && !path.includes("/api/interview/"))
+    );
+
+    if (path.startsWith("/api") && isProtected) {
         const cookieStore = await cookies();
         const token = cookieStore.get("better-auth.session_data");
         if (!token) throw new UnauthorizedError();
@@ -46,7 +53,6 @@ export async function proxy(req: NextRequest) {
         });
 
         return response;
-      }
     }
   } catch (err) {
     const { message, status } = errorHandler(err);
