@@ -13,7 +13,7 @@ interface ILoginInfo {
 export async function proxy(req: NextRequest) {
   try {
     const path = req.nextUrl.pathname;
-    const protectedPaths = ["/api/cv"];
+    const protectedPaths = ["/api/cv", "/api/job-recommendation"];
 
     if (path.startsWith("/api")) {
       if (protectedPaths.includes(path) || path.startsWith("/api/cv")) {
