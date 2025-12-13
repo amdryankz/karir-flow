@@ -54,25 +54,28 @@ export async function POST(req: NextRequest) {
       folder: "offer-letters",
     });
 
-    // const fileUrl = uploadResult.secure_url;
+    console.log(uploadResult);
+    
 
-    // const offerLetter = await prisma.offerLetter.create({
-    //   data: {
-    //     userId: id,
-    //     fileUrl: fileUrl,
-    //     status: "uploaded",
-    //   },
-    // });
+    const fileUrl = uploadResult.secure_url;
+
+    const offerLetter = await prisma.offerLetter.create({
+      data: {
+        userId: id,
+        fileUrl: fileUrl,
+        status: "uploaded",
+      },
+    });
 
     return NextResponse.json({
       success: true,
       message: "Offer letter uploaded",
-    //   data: {
-    //     id: offerLetter.id,
-    //     fileUrl: offerLetter.fileUrl,
-    //     status: offerLetter.status,
-    //     createdAt: offerLetter.createdAt,
-    //   },
+      data: {
+        id: offerLetter.id,
+        fileUrl: offerLetter.fileUrl,
+        status: offerLetter.status,
+        createdAt: offerLetter.createdAt,
+      },
     });
   } catch (error: any) {
     return NextResponse.json(

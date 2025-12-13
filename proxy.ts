@@ -20,7 +20,8 @@ export async function proxy(req: NextRequest) {
       "/api/interview/question",
       "/api/interview/generate-question",
       "/api/interview/answer",
-      "/api/job-recommendation"
+      "/api/job-recommendation",
+      "/api/offering"
     ];
 
     // Check if path matches protected patterns

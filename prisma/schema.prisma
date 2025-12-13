@@ -182,8 +182,6 @@ model OfferLetter {
   userId        String
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   fileUrl       String
-  // rawText       String
-  // cleanedText   String
   status        String // uploaded, analyzed, failed
   createdAt     DateTime        @default(now())
   analysis      OfferAnalysis?
