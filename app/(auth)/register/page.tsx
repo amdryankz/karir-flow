@@ -125,7 +125,9 @@ export default function SignUpPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Create an account
+          </CardTitle>
           <CardDescription>
             Enter your email below to create your account
           </CardDescription>
@@ -169,6 +171,7 @@ export default function SignUpPage() {
                       <div className="relative">
                         <Input
                           type={showPassword ? "text" : "password"}
+                          placeholder="Enter password"
                           {...field}
                         />
                         <Button
@@ -227,6 +230,7 @@ export default function SignUpPage() {
                       <div className="relative">
                         <Input
                           type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm password"
                           {...field}
                         />
                         <Button
