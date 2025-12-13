@@ -182,6 +182,7 @@ model OfferLetter {
   id            String          @id @default(uuid())
   userId        String
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
   fileUrl       String
   status        String // uploaded, analyzed, failed
   createdAt     DateTime        @default(now())
