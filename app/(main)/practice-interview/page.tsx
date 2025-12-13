@@ -58,7 +58,7 @@ export default function PracticeInterviewPage() {
         })
 
         if (!response.ok) {
-          throw new Error("Gagal mengambil data sesi wawancara")
+          throw new Error("Failed to fetch interview session data")
         }
 
         const { data } = await response.json()
