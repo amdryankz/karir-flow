@@ -1,5 +1,11 @@
 "use client";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Upload CV",
+};
+
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, FileText, X, CheckCircle, Loader2 } from "lucide-react";

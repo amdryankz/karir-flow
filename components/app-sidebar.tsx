@@ -103,7 +103,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <div className="w-full group-data-[collapsible=icon]:hidden">
                     {mounted ? (
                       <img
-                        src={theme === "dark" ? "/logo-dashboard-darkmode.svg" : "/logo-dashboard-lightmode.svg"}
+                        src={
+                          theme === "dark"
+                            ? "/logo-dashboard-darkmode.svg"
+                            : "/logo-dashboard-lightmode.svg"
+                        }
                         alt="Karir Flow"
                         className="h-10 w-full object-contain"
                       />
@@ -120,7 +124,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <div className="hidden group-data-[collapsible=icon]:inline-flex w-full items-center justify-center">
                     {mounted ? (
                       <img
-                        src={theme === "dark" ? "/logo-tab-darkmode.svg" : "/logo-tab.svg"}
+                        src={
+                          theme === "dark"
+                            ? "/logo-tab-darkmode.svg"
+                            : "/logo-tab.svg"
+                        }
                         alt="Karir Flow"
                         className="h-8 w-8 object-contain"
                       />
