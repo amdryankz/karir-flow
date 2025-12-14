@@ -130,7 +130,7 @@ export default function PracticeInterviewPage() {
 
   if (isPending || loading) {
     return (
-      <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
+      <div className="min-h-screen bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
         <div className="mx-auto max-w-6xl space-y-8">
           <div className="flex items-center justify-between">
             <div>
@@ -153,11 +153,11 @@ export default function PracticeInterviewPage() {
 
   if (error) {
     return (
-      <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
+      <div className="min-h-screen bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
         <div className="mx-auto max-w-6xl space-y-8">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-medium tracking-tight text-[#001e00] dark:text-zinc-100">My Interviews</h1>
-            <Button asChild className="rounded-full bg-[#14a800] hover:bg-[#14a800]/90 dark:text-white">
+            <Button asChild className="rounded-full bg-[#ffffff] hover:bg-[#14a800]/90 dark:text-white">
               <Link href="/practice-interview/start">Start New Interview</Link>
             </Button>
           </div>
@@ -172,7 +172,7 @@ export default function PracticeInterviewPage() {
   }
 
   return (
-    <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
+    <div className="min-h-screen bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
       <div className="mx-auto max-w-6xl space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

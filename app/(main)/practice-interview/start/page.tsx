@@ -95,7 +95,10 @@ function StartInterviewPageContent() {
 
         if (!generateRes.ok) {
           const body = await generateRes.json().catch(() => null)
-          throw new Error(body?.message || "Gagal membuat daftar pertanyaan dari AI")
+          if (generateRes.status === 404 && body?.message?.includes("CV document not found")) {
+            throw new Error("Please upload your CV first. Visit your profile page to upload a CV before starting an interview.")
+          }
+          throw new Error(body?.message || "Failed to generate interview questions. Please try again.")
         }
 
         const { data: questionSet } = await generateRes.json()
@@ -140,8 +143,8 @@ function StartInterviewPageContent() {
   }
 
   return (
-    <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
-      <div className="mx-auto max-w-3xl space-y-8">
+    <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 px-6 md:px-12 py-4 md:py-6 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
+      <div className="mx-auto max-w-3xl">
         <Button 
           variant="ghost" 
           onClick={() => router.back()} 
@@ -151,24 +154,27 @@ function StartInterviewPageContent() {
           Back to History
         </Button>
 
-        <div className="space-y-2">
-          <h1 className="text-3xl font-medium tracking-tight text-[#001e00] dark:text-zinc-100 md:text-4xl">New Interview Session</h1>
-          <p className="text-[#5e6d55] dark:text-zinc-400">
-            Configure your interview settings and provide context for the AI interviewer.
-          </p>
-        </div>
-
-        <Card className="border-none shadow-md bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden">
+        <Card className="border-none shadow-md bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden mt-4">
           <CardHeader className="bg-white dark:bg-zinc-900 border-b border-[#e4ebe4] dark:border-zinc-800 px-8 py-6">
-            <CardTitle className="flex items-center gap-2 text-xl font-medium text-[#001e00] dark:text-zinc-100">
-              <Sparkles className="h-5 w-5 text-[#14a800]" />
-              {isRepeat ? "Repeat Interview" : "Interview Context"}
-            </CardTitle>
-            <CardDescription className="text-[#5e6d55] dark:text-zinc-400">
-              {isRepeat 
-                ? "You will answer the same questions again. Your previous answers won't be overwritten."
-                : "Provide a title and job description for the AI interviewer."}
-            </CardDescription>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-medium tracking-tight text-[#001e00] dark:text-zinc-100 md:text-4xl">New Interview Session</h1>
+                <p className="text-[#5e6d55] dark:text-zinc-400">
+                  Configure your interview settings and provide context for the AI interviewer.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <CardTitle className="flex items-center gap-2 text-xl font-medium text-[#001e00] dark:text-zinc-100">
+                  <Sparkles className="h-5 w-5 text-[#14a800]" />
+                  {isRepeat ? "Repeat Interview" : "Interview Context"}
+                </CardTitle>
+                <CardDescription className="text-[#5e6d55] dark:text-zinc-400">
+                  {isRepeat 
+                    ? "You will answer the same questions again. Your previous answers won't be overwritten."
+                    : "Provide a title and job description for the AI interviewer."}
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6 p-8">
             <div className="space-y-2">

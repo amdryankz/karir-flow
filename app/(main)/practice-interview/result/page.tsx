@@ -112,8 +112,12 @@ function InterviewResultContent() {
   }
 
   const formatDuration = (start: string, end: string | null) => {
-    if (!end) return "In Progress"
-    const diff = new Date(end).getTime() - new Date(start).getTime()
+    if (!end) {
+      return "In Progress"
+    }
+    const startTime = new Date(start).getTime()
+    const endTime = new Date(end).getTime()
+    const diff = endTime - startTime
     const minutes = Math.floor(diff / 60000)
     const seconds = Math.floor((diff % 60000) / 1000)
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
@@ -127,7 +131,7 @@ function InterviewResultContent() {
 
   if (loading) {
     return (
-      <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
+      <div className="min-h-screen p-6 md:p-12 font-sans transition-colors duration-300">
         <div className="mx-auto max-w-4xl space-y-6">
           <Card className="border-none shadow-md bg-white dark:bg-zinc-900 rounded-2xl">
             <CardContent className="flex items-center justify-center h-64">
@@ -144,7 +148,7 @@ function InterviewResultContent() {
 
   if (error || !interview) {
     return (
-      <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
+      <div className="min-h-screen p-6 md:p-12 font-sans transition-colors duration-300">
         <div className="mx-auto max-w-4xl space-y-6">
           <Card className="border-red-100 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/30 shadow-sm rounded-2xl">
             <CardHeader>
@@ -177,7 +181,7 @@ function InterviewResultContent() {
   })
 
   return (
-    <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
+    <div className="min-h-screen p-6 md:p-12 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
       <div className="mx-auto max-w-4xl space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-medium tracking-tight text-[#001e00] dark:text-zinc-100 md:text-4xl">Interview Results</h1>
@@ -250,16 +254,44 @@ function InterviewResultContent() {
                           {answer.transcription || "(No transcription available)"}
                         </p>
                       </div>
-                      <div className="bg-[#f2f7f2] dark:bg-zinc-800/30 p-6 rounded-xl border border-[#e4ebe4] dark:border-zinc-800 space-y-3">
+                      <div className="bg-[#f2f7f2] dark:bg-zinc-800/30 p-6 rounded-xl border border-[#e4ebe4] dark:border-zinc-800 space-y-4">
                         <div className="flex items-center gap-2 text-base font-medium text-[#14a800]">
                           <CheckCircle2 className="h-5 w-5" />
                           AI Feedback
                         </div>
-                        <p className="text-base text-[#001e00] dark:text-zinc-300 leading-relaxed">{answer.feedbackContent || "No feedback available"}</p>
+                        
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <div className="text-xs font-medium text-[#5e6d55] dark:text-zinc-400 uppercase tracking-wide">Content Feedback</div>
+                            <p className="text-sm text-[#001e00] dark:text-zinc-300 leading-relaxed">{answer.feedbackContent || "No feedback available"}</p>
+                          </div>
+                          {answer.feedbackTone && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-medium text-[#5e6d55] dark:text-zinc-400 uppercase tracking-wide">Tone & Delivery</div>
+                              <p className="text-sm text-[#001e00] dark:text-zinc-300 leading-relaxed">{answer.feedbackTone}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-2">
+                          {answer.speechPace && (
+                            <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-[#e4ebe4] dark:border-zinc-700 text-xs font-medium">
+                              <span className="text-[#5e6d55] dark:text-zinc-400">Pace: </span>
+                              <span className="text-[#001e00] dark:text-zinc-200">{answer.speechPace}</span>
+                            </div>
+                          )}
+                          {answer.confidentLevel && (
+                            <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-[#e4ebe4] dark:border-zinc-700 text-xs font-medium">
+                              <span className="text-[#5e6d55] dark:text-zinc-400">Confidence: </span>
+                              <span className="text-[#001e00] dark:text-zinc-200">{answer.confidentLevel}</span>
+                            </div>
+                          )}
+                        </div>
+
                         {answer.tips && (
                           <div className="mt-4 pt-4 border-t border-[#d5e0d5] dark:border-zinc-700">
                             <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
-                              <strong className="text-[#001e00] dark:text-zinc-200">Tip:</strong> {answer.tips}
+                              <strong className="text-[#001e00] dark:text-zinc-200">💡 Tip:</strong> {answer.tips}
                             </p>
                           </div>
                         )}
@@ -297,7 +329,7 @@ function InterviewResultContent() {
 
 export default function InterviewResultPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#f2f7f2] dark:bg-zinc-950">
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-[#14a800]" />
     </div>}>
       <InterviewResultContent />

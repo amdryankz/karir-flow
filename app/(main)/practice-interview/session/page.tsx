@@ -16,6 +16,7 @@ type QuestionItem = {
   id: string
   text: string
   order: number
+  voiceUrl?: string
 }
 
 type StoredSession = {
@@ -69,69 +70,39 @@ export default function InterviewSessionPage() {
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null)
   const mediaStreamRef = React.useRef<MediaStream | null>(null)
   const audioChunksRef = React.useRef<BlobPart[]>([])
-  const synthRef = React.useRef<SpeechSynthesis | null>(null)
+  const audioRef = React.useRef<HTMLAudioElement | null>(null)
   const [isSpeaking, setIsSpeaking] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(true)
 
-  // Initialize TTS
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      synthRef.current = window.speechSynthesis
-      
-      // Load voices (some browsers need this)
-      const loadVoices = () => {
-        synthRef.current?.getVoices()
-      }
-      
-      loadVoices()
-      if (synthRef.current) {
-        synthRef.current.onvoiceschanged = loadVoices
-      }
-    }
-  }, [])
-
-  // Text-to-Speech function
-  const speakQuestion = async (text: string) => {
-    if (!synthRef.current || !text) return
+  // Text-to-Speech function using ElevenLabs audio from voiceUrl
+  const speakQuestion = async (voiceUrl?: string) => {
+    if (!voiceUrl) return
 
     // Stop any ongoing speech
-    synthRef.current.cancel()
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
     setIsSpeaking(true)
 
-    const utterance = new SpeechSynthesisUtterance(text)
-    
-    // Configure voice properties for clear English
-    utterance.rate = 0.85 // Slower for clarity
-    utterance.pitch = 1.0 // Normal pitch
-    utterance.volume = 1.0 // Full volume
-    utterance.lang = 'en-US' // Force English US
+    try {
+      const audio = new Audio(voiceUrl)
+      audioRef.current = audio
 
-    // Select the best English voice available
-    const voices = synthRef.current.getVoices()
-    const englishVoice = voices.find(voice => 
-      voice.lang.startsWith('en-') && voice.name.includes('Google')
-    ) || voices.find(voice => 
-      voice.lang.startsWith('en-US')
-    ) || voices.find(voice => 
-      voice.lang.startsWith('en')
-    )
-    
-    if (englishVoice) {
-      utterance.voice = englishVoice
-    }
+      audio.onended = () => {
+        setIsSpeaking(false)
+      }
 
-    // Event handlers
-    utterance.onend = () => {
+      audio.onerror = () => {
+        setIsSpeaking(false)
+        console.error('Audio playback error')
+      }
+
+      await audio.play()
+    } catch (error) {
+      console.error('Failed to play audio:', error)
       setIsSpeaking(false)
     }
-
-    utterance.onerror = () => {
-      setIsSpeaking(false)
-      console.error('Speech synthesis error')
-    }
-
-    // Start speaking
-    synthRef.current.speak(utterance)
   }
 
   React.useEffect(() => {
@@ -205,22 +176,26 @@ export default function InterviewSessionPage() {
   // Auto-speak question when it changes
   React.useEffect(() => {
     if (session?.questions?.[currentQuestionIndex] && !isLoading) {
-      const text = session.questions[currentQuestionIndex].text
+      const voiceUrl = session.questions[currentQuestionIndex].voiceUrl
       // Small delay to ensure UI is ready
       const timer = setTimeout(() => {
-        speakQuestion(text)
+        speakQuestion(voiceUrl)
       }, 1000)
       return () => clearTimeout(timer)
     }
   }, [currentQuestionIndex, isLoading, session])
 
   React.useEffect(() => {
-    if (timeLeft <= 0 || isUploading) return
+    if (!session) return
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
+          // Automatically finalize session when timer reaches 0
+          if (session?.sessionId && !isUploading) {
+            finalizeSession(session.sessionId)
+          }
           return 0
         }
         return prev - 1
@@ -228,7 +203,7 @@ export default function InterviewSessionPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [timeLeft, isUploading])
+  }, [session?.sessionId, isUploading])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -317,10 +292,10 @@ export default function InterviewSessionPage() {
         questionId: currentQ.id,
         question: currentQ.text,
         transcription: data.transcription,
-        feedback: data.feedback,
+        feedback: data.feedbackContent || data.feedback_content, // Handle backend vs frontend field names
         score: data.score,
-        speechPace: data.speechPace,
-        confidentLevel: data.confidentLevel,
+        speechPace: data.speechPace || data.speech_pace, // Handle field name difference
+        confidentLevel: data.confidentLevel || data.confidence_level, // Handle field name difference
         tips: data.tips,
         audioUrl: data.audioUrl
       }
@@ -529,8 +504,8 @@ export default function InterviewSessionPage() {
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0 text-[#5e6d55] hover:text-[#14a800] hover:bg-[#f2f7f2] rounded-full dark:text-zinc-400 dark:hover:text-[#14a800] dark:hover:bg-zinc-800"
-                      onClick={() => currentQuestion && speakQuestion(currentQuestion.text)}
-                      disabled={isSpeaking || !currentQuestion}
+                      onClick={() => currentQuestion && speakQuestion(currentQuestion.voiceUrl)}
+                      disabled={isSpeaking || !currentQuestion || !currentQuestion.voiceUrl}
                       title="Repeat question"
                     >
                       {isSpeaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
