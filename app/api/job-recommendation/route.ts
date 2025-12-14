@@ -1,9 +1,9 @@
-import { LinkedInScraper } from '@/lib/jobScrape';
-import prisma from '@/lib/prisma';
-import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { LinkedInScraper } from "@/lib/jobScrape";
+import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
@@ -11,72 +11,84 @@ export const maxDuration = 60;
  * Scrape lowongan pekerjaan dari LinkedIn berdasarkan analisis CV
  */
 export async function GET(req: NextRequest) {
-    console.log('📍 Starting job recommendation API...');
-    
-    try {
-        const id = req.headers.get('x-user-id') as string
-        console.log('👤 User ID:', id);
+  console.log("📍 Starting job recommendation API...");
 
-        if (!id) {
-            console.log('❌ No user ID provided');
-            return NextResponse.json({
-                success: false,
-                error: 'User ID tidak ditemukan. Silakan login terlebih dahulu.'
-            }, { status: 401 });
-        }
+  try {
+    const id = req.headers.get("x-user-id") as string;
+    console.log("👤 User ID:", id);
 
-        console.log('🔍 Fetching PDF from database...');
-        // Ambil PDF CV dari database
-        const pdf = await prisma.pdfDocument.findFirst({
-            where: {
-                userId: id
-            },
-            include: {
-                extractedText: true
-            }
-        })
+    if (!id) {
+      console.log("❌ No user ID provided");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "User ID tidak ditemukan. Silakan login terlebih dahulu.",
+        },
+        { status: 401 }
+      );
+    }
 
-        if (!pdf || !pdf.extractedText) {
-            console.log('❌ PDF not found for user:', id);
-            return NextResponse.json({
-                success: false,
-                error: 'CV tidak ditemukan. Silakan upload CV terlebih dahulu.'
-            }, { status: 404 });
-        }
+    console.log("🔍 Fetching PDF from database...");
+    // Ambil PDF CV dari database
+    const pdf = await prisma.pdfDocument.findFirst({
+      where: {
+        userId: id,
+      },
+      include: {
+        extractedText: true,
+      },
+    });
 
-        console.log('✅ PDF found:', pdf.id);
-        const cvText = pdf.extractedText.content;
+    if (!pdf || !pdf.extractedText) {
+      console.log("❌ PDF not found for user:", id);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "CV tidak ditemukan. Silakan upload CV terlebih dahulu.",
+        },
+        { status: 404 }
+      );
+    }
 
-        if (!cvText) {
-            console.log('❌ CV content is empty');
-            return NextResponse.json({
-                success: false,
-                error: 'Konten CV kosong. Silakan upload CV yang valid.'
-            }, { status: 400 });
-        }
+    console.log("✅ PDF found:", pdf.id);
+    const cvText = pdf.extractedText.content;
 
-        console.log('📄 CV text length:', cvText.length);
+    if (!cvText) {
+      console.log("❌ CV content is empty");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Konten CV kosong. Silakan upload CV yang valid.",
+        },
+        { status: 400 }
+      );
+    }
 
-        // Check GEMINI_API_KEY
-        if (!process.env.GEMINI_API_KEY) {
-            console.error('❌ GEMINI_API_KEY not found in environment variables');
-            return NextResponse.json({
-                success: false,
-                error: 'GEMINI_API_KEY tidak ditemukan'
-            }, { status: 500 });
-        }
+    console.log("📄 CV text length:", cvText.length);
 
-        console.log('🤖 Initializing Gemini AI...');
-        // Inisialisasi Gemini AI
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
-            generationConfig: {
-                responseMimeType: 'application/json'
-            }
-        })
+    // Check GEMINI_API_KEY
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("❌ GEMINI_API_KEY not found in environment variables");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "GEMINI_API_KEY tidak ditemukan",
+        },
+        { status: 500 }
+      );
+    }
 
-        const prompt = `Analisis CV berikut dan ekstrak informasi untuk pencarian lowongan pekerjaan.
+    console.log("🤖 Initializing Gemini AI...");
+    // Inisialisasi Gemini AI
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
+
+    const prompt = `Analisis CV berikut dan ekstrak informasi untuk pencarian lowongan pekerjaan.
 
 CV Text:
 ${cvText}
@@ -92,67 +104,73 @@ Pastikan:
 - JANGAN tambahkan tipe kontrak seperti Intern, Contract, Remote, WFO, Full-time, Part-time
 - techSkills adalah array berisi teknologi spesifik (bahasa pemrograman, framework, tools, dll)`;
 
-        console.log('🤖 Menganalisis CV dengan AI...');
-        const result = await model.generateContent(prompt)
-        const responseText = result.response.text()
-        console.log('📝 AI Response:', responseText);
-        
-        const { keywords, techSkills } = JSON.parse(responseText);
+    console.log("🤖 Menganalisis CV dengan AI...");
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    console.log("📝 AI Response:", responseText);
 
-        const location = 'Indonesia';
-        const maxJobs = 50;
+    const { keywords, techSkills } = JSON.parse(responseText);
 
-        console.log('✅ AI Analysis:', { keywords, techSkills });
-        console.log(`🔍 Searching jobs: keyword="${keywords}", location="${location}", techSkills=[${techSkills.join(', ')}], limit=${maxJobs}`);
+    const location = "Indonesia";
+    const maxJobs = 150;
 
-        const scraper = new LinkedInScraper();
-        await scraper.initialize();
+    console.log("✅ AI Analysis:", { keywords, techSkills });
+    console.log(
+      `🔍 Searching jobs: keyword="${keywords}", location="${location}", techSkills=[${techSkills.join(
+        ", "
+      )}], limit=${maxJobs}`
+    );
 
-        console.log('🕷️ Starting scraping...');
-        const jobs = await scraper.scrapeJobs({
-            keywords,
-            location,
-            maxJobs,
-            techSkills
-        });
+    const scraper = new LinkedInScraper();
+    await scraper.initialize();
 
-        console.log(`✅ Scraping complete, found ${jobs.length} jobs`);
-        await scraper.close();
+    console.log("🕷️ Starting scraping...");
+    const jobs = await scraper.scrapeJobs({
+      keywords,
+      location,
+      maxJobs,
+      techSkills,
+    });
 
-        return NextResponse.json({
-            success: true,
-            searchParams: {
-                keywords,
-                location,
-                techSkills,
-                maxJobs
-            },
-            totalResults: jobs.length,
-            jobs: jobs.map(job => ({
-                title: job.title,
-                company: job.company,
-                location: job.location,
-                date: job.postedDate,
-                jobUrl: job.applyUrl,
-                description: job.description,
-                skills: job.skills,
-                isRemote: job.isRemote,
-                skillMatchCount: job.skillMatchCount
-            }))
-        });
+    console.log(`✅ Scraping complete, found ${jobs.length} jobs`);
+    await scraper.close();
 
-    } catch (error: any) {
-        console.error('❌ FATAL ERROR in job-recommendation:');
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        console.error('Full error object:', JSON.stringify(error, null, 2));
-        
-        return NextResponse.json({
-            success: false,
-            error: error.message || 'Internal server error',
-            errorName: error.name,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        }, { status: 500 });
-    }
+    return NextResponse.json({
+      success: true,
+      searchParams: {
+        keywords,
+        location,
+        techSkills,
+        maxJobs,
+      },
+      totalResults: jobs.length,
+      jobs: jobs.map((job) => ({
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        date: job.postedDate,
+        jobUrl: job.applyUrl,
+        description: job.description,
+        skills: job.skills,
+        isRemote: job.isRemote,
+        skillMatchCount: job.skillMatchCount,
+      })),
+    });
+  } catch (error: any) {
+    console.error("❌ FATAL ERROR in job-recommendation:");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("Full error object:", JSON.stringify(error, null, 2));
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message || "Internal server error",
+        errorName: error.name,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
+  }
 }
