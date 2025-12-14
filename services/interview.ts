@@ -30,9 +30,13 @@ export class InterviewService {
     if (!interview) throw new Error("Interview not found");
 
     const answers = interview.answers;
+    const totalQuestions = interview.questionSet.questions.length;
     const totalScore = answers.reduce((sum, a) => sum + a.score, 0);
-    // Score per answer is 1-10. Average * 10 gives 0-100.
-    const avgScore = answers.length > 0 ? Math.round((totalScore / answers.length) * 10) : 0;
+    
+    // Score per answer is 1-10. 
+    // Calculate score based on total questions in the set, not just answered ones.
+    // Formula: (Sum of Scores / Total Questions) * 10
+    const avgScore = totalQuestions > 0 ? Math.round((totalScore / totalQuestions) * 10) : 0;
 
     return await InterviewModel.updateInterview(id, {
       finishedAt: new Date(),

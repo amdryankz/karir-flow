@@ -2,12 +2,14 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "@/lib/authClient"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { CheckCircle2, ArrowRight, RotateCcw, Loader2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
+import { Suspense } from "react"
 
 type Answer = {
   id: string
@@ -41,12 +43,22 @@ type InterviewData = {
   answers: Answer[]
 }
 
-export default function InterviewResultPage() {
+function InterviewResultContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session } = useSession()
+  const { data: session, isPending } = useSession()
   const [interview, setInterview] = React.useState<InterviewData | null>(null)
   const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    if (!isPending && !session) {
+      toast.error("Sesi Anda telah berakhir", {
+        description: "Silakan login kembali untuk melanjutkan.",
+      })
+      router.push("/login")
+    }
+  }, [isPending, session, router])
+
   const [error, setError] = React.useState<string | null>(null)
 
   const interviewId = searchParams.get("id")
@@ -274,11 +286,21 @@ export default function InterviewResultPage() {
           <Button asChild className="h-12 px-6 rounded-full bg-[#14a800] hover:bg-[#14a800]/90 text-white shadow-sm hover:shadow-md transition-all">
             <Link href={`/practice-interview/start?parentId=${interview.id}&description=${encodeURIComponent(interview.questionSet.description)}`}>
               <RotateCcw className="mr-2 h-4 w-4" />
-             interview again
+             Practice Again
             </Link>
           </Button>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function InterviewResultPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#f2f7f2] dark:bg-zinc-950">
+      <Loader2 className="h-8 w-8 animate-spin text-[#14a800]" />
+    </div>}>
+      <InterviewResultContent />
+    </Suspense>
   )
 }

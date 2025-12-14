@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "@/lib/authClient"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import {
   Table,
   TableBody,
@@ -41,9 +43,19 @@ type InterviewSession = {
 
 export default function PracticeInterviewPage() {
   const { data: session, isPending } = useSession()
+  const router = useRouter()
   const [interviews, setInterviews] = useState<InterviewSession[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      toast.error("Your session has expired", {
+        description: "Please login again to continue.",
+      })
+      router.push("/login")
+    }
+  }, [isPending, session, router])
 
   useEffect(() => {
     if (!session?.user?.id) return
@@ -58,14 +70,14 @@ export default function PracticeInterviewPage() {
         })
 
         if (!response.ok) {
-          throw new Error("Gagal mengambil data sesi wawancara")
+          throw new Error("Failed to fetch interview sessions")
         }
 
         const { data } = await response.json()
         setInterviews(data || [])
       } catch (err) {
         console.error(err)
-        setError(err instanceof Error ? err.message : "Terjadi kesalahan")
+        setError(err instanceof Error ? err.message : "An error occurred")
       } finally {
         setLoading(false)
       }
@@ -79,7 +91,7 @@ export default function PracticeInterviewPage() {
     
     // Belum mulai - 0 jawaban
     if (answers.length === 0) {
-      return "Pending"
+      return "Not Started"
     }
     
     // Hitung average score dari answers (score backend dalam skala 1-10)
@@ -176,8 +188,8 @@ export default function PracticeInterviewPage() {
           </Button>
         </div>
 
-        <Card className="overflow-hidden border-none shadow-md bg-white dark:bg-zinc-900 rounded-2xl">
-          <CardHeader className="border-b border-[#e4ebe4] dark:border-zinc-800 bg-white dark:bg-zinc-900 px-8 py-6">
+        <Card className="overflow-hidden border-none shadow-md bg-sidebar rounded-2xl">
+          <CardHeader className="border-b border-[#e4ebe4] dark:border-zinc-800 bg-sidebar px-8 py-6">
             <CardTitle className="text-xl font-medium text-[#001e00] dark:text-zinc-100">Recent Sessions</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -203,7 +215,7 @@ export default function PracticeInterviewPage() {
                     <TableHead className="py-4 font-medium text-[#5e6d55] dark:text-zinc-400">Date</TableHead>
                     <TableHead className="py-4 font-medium text-[#5e6d55] dark:text-zinc-400">Status</TableHead>
                     <TableHead className="py-4 font-medium text-[#5e6d55] dark:text-zinc-400">Score</TableHead>
-                    <TableHead className="px-8 py-4 text-right font-medium text-[#5e6d55] dark:text-zinc-400">Actions</TableHead>
+                    <TableHead className="px-8 py-4 text-center font-medium text-[#5e6d55] dark:text-zinc-400">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -241,18 +253,10 @@ export default function PracticeInterviewPage() {
                             <span className="text-[#9aaa97] dark:text-zinc-600">-</span>
                           )}
                         </TableCell>
-                        <TableCell className="px-8 py-5 text-right space-x-2">
-                          {/* Detail Button - always visible if has answers */}
-                          {interview.answers && interview.answers.length > 0 && (
-                            <Button variant="ghost" size="icon" asChild title="View Details" className="text-[#5e6d55] hover:text-[#14a800] hover:bg-[#f2f7f2] rounded-full dark:text-zinc-400 dark:hover:text-[#14a800] dark:hover:bg-zinc-800">
-                              <Link href={`/practice-interview/result?id=${interview.id}`}>
-                                <FileText className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                          )}
+                        <TableCell className="px-8 py-5 text-center space-x-2">
                           
                           {/* Main Action Button */}
-                          {interview.finishedAt ? (
+                          {interview.finishedAt || (interview.answers && interview.answers.length > 0) ? (
                             <>
                               <Button variant="outline" size="sm" asChild className="rounded-full border-[#d5e0d5] text-[#001e00] hover:border-[#14a800] hover:text-[#14a800] hover:bg-white dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
                                 <Link href={`/practice-interview/result?id=${interview.id}`}>
@@ -260,25 +264,18 @@ export default function PracticeInterviewPage() {
                                   Results
                                 </Link>
                               </Button>
-                              <Button variant="outline" size="sm" asChild className="rounded-full border-[#d5e0d5] text-[#001e00] hover:border-[#14a800] hover:text-[#14a800] hover:bg-white dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                              <Button variant="outline" size="sm" asChild className="rounded-full border-[#d5e0d5] text-[#14a800] hover:border-[#14a800] hover:text-[#14a800] hover:bg-white dark:border-zinc-700 dark:text-[#14a800] dark:hover:bg-zinc-800">
                                 <Link href={`/practice-interview/start?parentId=${interview.id}&questionSetId=${interview.questionSet.id}&title=${encodeURIComponent(interview.title)}`}>
                                   <RotateCcw className="h-4 w-4 mr-2" />
                                   Repeat
                                 </Link>
                               </Button>
                             </>
-                          ) : status === "Pending" ? (
-                            <Button variant="outline" size="sm" asChild className="rounded-full border-[#14a800] text-[#14a800] hover:bg-[#f2f7f2] dark:hover:bg-zinc-800">
-                              <Link href={`/practice-interview/session?resume=${interview.id}`}>
-                                <RotateCcw className="h-4 w-4 mr-2" />
-                                Start
-                              </Link>
-                            </Button>
                           ) : (
                             <Button variant="outline" size="sm" asChild className="rounded-full border-[#14a800] text-[#14a800] hover:bg-[#f2f7f2] dark:hover:bg-zinc-800">
                               <Link href={`/practice-interview/session?resume=${interview.id}`}>
                                 <RotateCcw className="h-4 w-4 mr-2" />
-                                Repeat
+                                Continue
                               </Link>
                             </Button>
                           )}

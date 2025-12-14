@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "@/lib/authClient"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -17,9 +18,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { ArrowLeft, Sparkles } from "lucide-react"
+import { ArrowLeft, Sparkles, Loader2 } from "lucide-react"
+import { Suspense } from "react"
 
-export default function StartInterviewPage() {
+function StartInterviewPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { data: session, isPending } = useSession()
@@ -34,6 +36,15 @@ export default function StartInterviewPage() {
   const parentId = searchParams.get("parentId")
   const questionSetId = searchParams.get("questionSetId")
   const prefilledTitle = searchParams.get("title")
+
+  React.useEffect(() => {
+    if (!isPending && !session) {
+      toast.error("Sesi Anda telah berakhir", {
+        description: "Silakan login kembali untuk melanjutkan.",
+      })
+      router.push("/login")
+    }
+  }, [isPending, session, router])
 
   // Check if this is repeat mode
   React.useEffect(() => {
@@ -59,7 +70,7 @@ export default function StartInterviewPage() {
   const handleConfirm = async () => {
     const userId = session?.user?.id
     if (!userId) {
-      setError("Anda belum login. Silakan login terlebih dahulu.")
+      setError("You are not logged in. Please login first.")
       setShowConfirmDialog(false)
       return
     }
@@ -84,7 +95,7 @@ export default function StartInterviewPage() {
 
         if (!generateRes.ok) {
           const body = await generateRes.json().catch(() => null)
-          throw new Error(body?.message || "Gagal membuat daftar pertanyaan dari AI")
+          throw new Error(body?.message || "Failed to generate questions from AI")
         }
 
         const { data: questionSet } = await generateRes.json()
@@ -104,7 +115,7 @@ export default function StartInterviewPage() {
 
       if (!interviewRes.ok) {
         const body = await interviewRes.json().catch(() => null)
-        throw new Error(body?.message || "Gagal memulai sesi wawancara")
+        throw new Error(body?.message || "Failed to start interview session")
       }
 
       const { data: interview } = await interviewRes.json()
@@ -122,7 +133,7 @@ export default function StartInterviewPage() {
       router.push("/practice-interview/session")
     } catch (err) {
       console.error(err)
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan tak terduga")
+      setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setIsSubmitting(false)
     }
@@ -160,40 +171,36 @@ export default function StartInterviewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 p-8">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-[#001e00] dark:text-zinc-200 font-medium">Interview Title *</Label>
+              <Textarea
+                id="title"
+                placeholder="e.g. Frontend Developer at Google"
+                className="min-h-[60px] resize-none text-base p-4 rounded-xl border-[#e4ebe4] focus-visible:ring-[#14a800] focus-visible:border-[#14a800] bg-[#f9f9f9] dark:bg-zinc-800 dark:border-zinc-700"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+
             {!isRepeat && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-[#001e00] dark:text-zinc-200 font-medium">Interview Title *</Label>
-                  <Textarea
-                    id="title"
-                    placeholder="e.g. Frontend Developer at Google"
-                    className="min-h-[60px] resize-none text-base p-4 rounded-xl border-[#e4ebe4] focus-visible:ring-[#14a800] focus-visible:border-[#14a800] bg-[#f9f9f9] dark:bg-zinc-800 dark:border-zinc-700"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-[#001e00] dark:text-zinc-200 font-medium">Job Description / Context *</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="e.g. Senior Frontend Developer role at Tech Corp. Requirements: React, TypeScript, Node.js..."
-                    className="min-h-[200px] resize-none text-base p-4 rounded-xl border-[#e4ebe4] focus-visible:ring-[#14a800] focus-visible:border-[#14a800] bg-[#f9f9f9] dark:bg-zinc-800 dark:border-zinc-700"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-[#001e00] dark:text-zinc-200 font-medium">Job Description / Context *</Label>
+                <Textarea
+                  id="description"
+                  placeholder="e.g. Senior Frontend Developer role at Tech Corp. Requirements: React, TypeScript, Node.js..."
+                  className="min-h-[200px] resize-none text-base p-4 rounded-xl border-[#e4ebe4] focus-visible:ring-[#14a800] focus-visible:border-[#14a800] bg-[#f9f9f9] dark:bg-zinc-800 dark:border-zinc-700"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
             )}
 
             {isRepeat && (
               <div className="bg-[#f2f7f2] dark:bg-zinc-800/50 border border-[#e4ebe4] dark:border-zinc-700 rounded-xl p-6">
-                <p className="text-base text-[#001e00] dark:text-zinc-100 font-medium">
-                  <strong>Title:</strong> {title}
-                </p>
-                <p className="text-sm text-[#5e6d55] dark:text-zinc-400 mt-2">
-                  You'll be answering the same set of questions from your previous interview.
+                <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
+                  You'll be answering the same set of questions from your previous interview. You can change the title for this new session.
                 </p>
               </div>
             )}
@@ -237,5 +244,15 @@ export default function StartInterviewPage() {
         </AlertDialog>
       </div>
     </div>
+  )
+}
+
+export default function StartInterviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#f2f7f2] dark:bg-zinc-950">
+      <Loader2 className="h-8 w-8 animate-spin text-[#14a800]" />
+    </div>}>
+      <StartInterviewPageContent />
+    </Suspense>
   )
 }
