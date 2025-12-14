@@ -52,7 +52,46 @@ export default function JobRecommendationPage() {
           return;
         }
         const json = await res.json();
-        const items: JobItem[] = json?.data || [];
+        const raw = Array.isArray(json?.data)
+          ? json.data
+          : Array.isArray(json?.jobs)
+          ? json.jobs
+          : Array.isArray(json)
+          ? json
+          : [];
+
+        const items: JobItem[] = raw.map((j: any) => {
+          const skillsRaw = j.skills ?? j.keywords ?? j.skillsText ?? j.skills_string ?? [];
+          const matchedRaw = j.matchedSkills ?? j.skillMatches ?? j.matched ?? [];
+
+          const toArray = (v: any): string[] => {
+            if (!v) return [];
+            if (Array.isArray(v)) return v.map((x) => (typeof x === "string" ? x : x?.name ?? String(x))).filter(Boolean);
+            if (typeof v === "string") return v.split(/[,|]/).map((s) => s.trim()).filter(Boolean);
+            // object with keys
+            if (typeof v === "object") return Object.values(v).map((x: any) => (typeof x === "string" ? x : x?.name ?? String(x))).filter(Boolean);
+            return [];
+          };
+
+          const skillsArr = toArray(skillsRaw);
+          const matchedArr = toArray(matchedRaw);
+
+          return {
+            id:
+              j.id ??
+              j.jobId ??
+              `${j.title ?? j.jobTitle}-${j.company ?? j.companyName}-${j.jobUrl ?? j.url ?? Math.random().toString(36).slice(2)}`,
+            title: j.title ?? j.jobTitle ?? "Untitled Role",
+            company: j.company ?? j.companyName ?? "Unknown Company",
+            location: j.location ?? j.city ?? j.region ?? "",
+            postedAt: j.postedAt ?? j.posted_date ?? j.date ?? undefined,
+            isRemote: j.isRemote ?? j.remote ?? false,
+            jobUrl: j.jobUrl ?? j.url ?? j.link ?? "#",
+            skills: skillsArr,
+            matchedSkillsCount:
+              j.matchedSkillsCount ?? j.matchCount ?? (matchedArr.length > 0 ? matchedArr.length : undefined),
+          } as JobItem;
+        });
         if (!cancelled) setJobs(items);
       } catch (e: any) {
         if (!cancelled)
