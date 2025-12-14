@@ -2,12 +2,14 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "@/lib/authClient"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { CheckCircle2, ArrowRight, RotateCcw, Loader2 } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
+import { Suspense } from "react"
 
 type Answer = {
   id: string
@@ -41,12 +43,22 @@ type InterviewData = {
   answers: Answer[]
 }
 
-export default function InterviewResultPage() {
+function InterviewResultContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session } = useSession()
+  const { data: session, isPending } = useSession()
   const [interview, setInterview] = React.useState<InterviewData | null>(null)
   const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    if (!isPending && !session) {
+      toast.error("Sesi Anda telah berakhir", {
+        description: "Silakan login kembali untuk melanjutkan.",
+      })
+      router.push("/login")
+    }
+  }, [isPending, session, router])
+
   const [error, setError] = React.useState<string | null>(null)
 
   const interviewId = searchParams.get("id")
@@ -100,8 +112,12 @@ export default function InterviewResultPage() {
   }
 
   const formatDuration = (start: string, end: string | null) => {
-    if (!end) return "In Progress"
-    const diff = new Date(end).getTime() - new Date(start).getTime()
+    if (!end) {
+      return "In Progress"
+    }
+    const startTime = new Date(start).getTime()
+    const endTime = new Date(end).getTime()
+    const diff = endTime - startTime
     const minutes = Math.floor(diff / 60000)
     const seconds = Math.floor((diff % 60000) / 1000)
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
@@ -115,7 +131,7 @@ export default function InterviewResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
+      <div className="min-h-screen p-6 md:p-12 font-sans transition-colors duration-300">
         <div className="mx-auto max-w-4xl space-y-6">
           <Card className="border-none shadow-md bg-white dark:bg-zinc-900 rounded-2xl">
             <CardContent className="flex items-center justify-center h-64">
@@ -132,7 +148,7 @@ export default function InterviewResultPage() {
 
   if (error || !interview) {
     return (
-      <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans transition-colors duration-300">
+      <div className="min-h-screen p-6 md:p-12 font-sans transition-colors duration-300">
         <div className="mx-auto max-w-4xl space-y-6">
           <Card className="border-red-100 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/30 shadow-sm rounded-2xl">
             <CardHeader>
@@ -165,7 +181,7 @@ export default function InterviewResultPage() {
   })
 
   return (
-    <div className="min-h-full bg-[#f2f7f2] dark:bg-zinc-950 p-6 md:p-12 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
+    <div className="min-h-screen p-6 md:p-12 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
       <div className="mx-auto max-w-4xl space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-medium tracking-tight text-[#001e00] dark:text-zinc-100 md:text-4xl">Interview Results</h1>
@@ -238,16 +254,44 @@ export default function InterviewResultPage() {
                           {answer.transcription || "(No transcription available)"}
                         </p>
                       </div>
-                      <div className="bg-[#f2f7f2] dark:bg-zinc-800/30 p-6 rounded-xl border border-[#e4ebe4] dark:border-zinc-800 space-y-3">
+                      <div className="bg-[#f2f7f2] dark:bg-zinc-800/30 p-6 rounded-xl border border-[#e4ebe4] dark:border-zinc-800 space-y-4">
                         <div className="flex items-center gap-2 text-base font-medium text-[#14a800]">
                           <CheckCircle2 className="h-5 w-5" />
                           AI Feedback
                         </div>
-                        <p className="text-base text-[#001e00] dark:text-zinc-300 leading-relaxed">{answer.feedbackContent || "No feedback available"}</p>
+                        
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <div className="text-xs font-medium text-[#5e6d55] dark:text-zinc-400 uppercase tracking-wide">Content Feedback</div>
+                            <p className="text-sm text-[#001e00] dark:text-zinc-300 leading-relaxed">{answer.feedbackContent || "No feedback available"}</p>
+                          </div>
+                          {answer.feedbackTone && (
+                            <div className="space-y-2">
+                              <div className="text-xs font-medium text-[#5e6d55] dark:text-zinc-400 uppercase tracking-wide">Tone & Delivery</div>
+                              <p className="text-sm text-[#001e00] dark:text-zinc-300 leading-relaxed">{answer.feedbackTone}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-2">
+                          {answer.speechPace && (
+                            <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-[#e4ebe4] dark:border-zinc-700 text-xs font-medium">
+                              <span className="text-[#5e6d55] dark:text-zinc-400">Pace: </span>
+                              <span className="text-[#001e00] dark:text-zinc-200">{answer.speechPace}</span>
+                            </div>
+                          )}
+                          {answer.confidentLevel && (
+                            <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-[#e4ebe4] dark:border-zinc-700 text-xs font-medium">
+                              <span className="text-[#5e6d55] dark:text-zinc-400">Confidence: </span>
+                              <span className="text-[#001e00] dark:text-zinc-200">{answer.confidentLevel}</span>
+                            </div>
+                          )}
+                        </div>
+
                         {answer.tips && (
                           <div className="mt-4 pt-4 border-t border-[#d5e0d5] dark:border-zinc-700">
                             <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
-                              <strong className="text-[#001e00] dark:text-zinc-200">Tip:</strong> {answer.tips}
+                              <strong className="text-[#001e00] dark:text-zinc-200">💡 Tip:</strong> {answer.tips}
                             </p>
                           </div>
                         )}
@@ -274,11 +318,21 @@ export default function InterviewResultPage() {
           <Button asChild className="h-12 px-6 rounded-full bg-[#14a800] hover:bg-[#14a800]/90 text-white shadow-sm hover:shadow-md transition-all">
             <Link href={`/practice-interview/start?parentId=${interview.id}&description=${encodeURIComponent(interview.questionSet.description)}`}>
               <RotateCcw className="mr-2 h-4 w-4" />
-             interview again
+             Practice Again
             </Link>
           </Button>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function InterviewResultPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-[#14a800]" />
+    </div>}>
+      <InterviewResultContent />
+    </Suspense>
   )
 }

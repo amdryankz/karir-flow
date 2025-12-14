@@ -92,7 +92,7 @@ export class QuestionService {
   static async generateFeedbackAnswerFromAI(
     audioFile: File,
     question: string
-  ): Promise<AnswerData> {
+  ): Promise<any> { // Using any to handle AI response format
     const arrayBuffer = await audioFile.arrayBuffer();
     const base64Audio = Buffer.from(arrayBuffer).toString("base64");
 
@@ -171,14 +171,14 @@ export class QuestionService {
     const dbData: AnswerData = {
       transcription: answer.transcription,
       audioUrl: audioUrl,
-      feedbackContent: answer.feedbackContent,
-      feedbackTone: answer.feedbackTone,
+      feedbackContent: answer.feedback_content || answer.feedbackContent,
+      feedbackTone: answer.feedback_tone || answer.feedbackTone,
       score:
         typeof answer.score === "number"
           ? answer.score
           : parseInt(answer.score) || 5,
-      speechPace: answer.speechPace,
-      confidentLevel: answer.confidentLevel,
+      speechPace: answer.speech_pace || answer.speechPace,
+      confidentLevel: answer.confidence_level || answer.confidentLevel,
       tips: answer.tips,
       interviewSessionId: interviewSessionId,
       questionId: questionId,

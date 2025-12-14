@@ -9,6 +9,10 @@ export async function POST(req: NextRequest) {
     const { jobDesc } = body;
     const id = req.headers.get("x-user-id") as string;
 
+    if (!id) {
+      return NextResponse.json({ message: "User ID is required" }, { status: 400 });
+    }
+
     const savedQuestionSet = await QuestionService.createQuestionSet(
       id,
       jobDesc
@@ -19,7 +23,7 @@ export async function POST(req: NextRequest) {
       data: savedQuestionSet,
     });
   } catch (err) {
-    console.log(err);
+    console.error("Error in generate-question API:", err);
     const { message, status } = errorHandler(err);
     return NextResponse.json({ message }, { status });
   }
