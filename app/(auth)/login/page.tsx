@@ -1,5 +1,11 @@
 "use client";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Login",
+};
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +13,7 @@ import * as z from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/authClient";
+import { useCvStatus } from "@/hooks/use-cv-status";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -41,6 +48,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { hasCv } = useCvStatus();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,9 +65,16 @@ export default function LoginPage() {
         email: values.email,
         password: values.password,
         fetchOptions: {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast.success("Logged in successfully");
-            router.push("/dashboard");
+            try {
+              const res = await fetch("/api/cv");
+              const json = await res.json();
+              const uploaded = !!json?.data;
+              router.push(uploaded ? "/dashboard" : "/upload-cv");
+            } catch (_) {
+              router.push("/upload-cv");
+            }
           },
           onError: (ctx) => {
             toast.error(ctx.error.message);
@@ -79,7 +94,9 @@ export default function LoginPage() {
     try {
       await signIn.social({
         provider,
-        callbackURL: "/dashboard",
+        // After social auth, Better Auth will return to this URL.
+        // The (main) layout guard will route based on CV status.
+        callbackURL: hasCv ? "/dashboard" : "/upload-cv",
       });
     } catch (error) {
       console.error(error);
@@ -120,7 +137,11 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="Enter password"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

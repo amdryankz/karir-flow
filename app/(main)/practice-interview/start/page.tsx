@@ -95,7 +95,7 @@ function StartInterviewPageContent() {
 
         if (!generateRes.ok) {
           const body = await generateRes.json().catch(() => null)
-          throw new Error(body?.message || "Failed to generate questions from AI")
+          throw new Error(body?.message || "Gagal membuat daftar pertanyaan dari AI")
         }
 
         const { data: questionSet } = await generateRes.json()

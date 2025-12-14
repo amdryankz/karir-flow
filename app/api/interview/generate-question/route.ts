@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       data: savedQuestionSet,
     });
   } catch (err) {
+    console.log(err);
     const { message, status } = errorHandler(err);
     return NextResponse.json({ message }, { status });
   }
