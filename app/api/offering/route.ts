@@ -66,13 +66,14 @@ export async function POST(req: NextRequest) {
     });
 
     const analyzedOffer = await axios.post(
-      "https://marsyandha-nayoan.app.n8n.cloud/webhook-test/analyze-offer",
+      "https://marsyandha-nayoan.app.n8n.cloud/webhook/analyze-offer",
       {
         offerLetterId: `${offerLetter.id}`,
         fileUrl: `${offerLetter.fileUrl}`,
       }
     );
 
+    console.log(analyzedOffer, "<<<<<<<<<<<<<<<oferring");
     const { data } = analyzedOffer.data;
     const { offerAnalysis, redFlags } = data;
 
