@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { PageHeader } from "@/components/page-header";
 
 type OfferLetter = {
   id: string;
@@ -60,7 +61,9 @@ export default function CheckOfferingPage() {
 
         if (!res.ok) {
           const json = await res.json().catch(() => ({}));
-          throw new Error(json.error || json.message || "Failed to fetch offerings");
+          throw new Error(
+            json.error || json.message || "Failed to fetch offerings"
+          );
         }
 
         const json = await res.json();
@@ -113,7 +116,9 @@ export default function CheckOfferingPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json?.success === false) {
-        throw new Error(json?.error || json?.message || "Failed to delete offer letter");
+        throw new Error(
+          json?.error || json?.message || "Failed to delete offer letter"
+        );
       }
       setOfferings((prev) => prev.filter((o) => o.id !== deleteId));
       toast.success("Offer letter deleted");
@@ -128,12 +133,15 @@ export default function CheckOfferingPage() {
   if (loading) {
     return (
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Check Offering</h1>
-          <Button disabled>
-            <Plus className="mr-2 h-4 w-4" /> Upload Offer Letter
-          </Button>
-        </div>
+        <PageHeader
+          title="Check Offering"
+          description="Manage uploaded offer letters and view insights."
+          actions={
+            <Button disabled>
+              <Plus className="mr-2 h-4 w-4" /> Upload Offer Letter
+            </Button>
+          }
+        />
         <div className="flex h-[200px] items-center justify-center rounded-md border bg-card">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -147,18 +155,23 @@ export default function CheckOfferingPage() {
   if (error) {
     return (
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Check Offering</h1>
-          <Button onClick={() => router.push("/upload-offering")}>
-            <Plus className="mr-2 h-4 w-4" /> Upload Offer Letter
-          </Button>
-        </div>
+        <PageHeader
+          title="Check Offering"
+          description="Manage uploaded offer letters and view insights."
+          actions={
+            <Button onClick={() => router.push("/upload-offering")}>
+              <Plus className="mr-2 h-4 w-4" /> Upload Offer Letter
+            </Button>
+          }
+        />
         <Card className="border-destructive/50 bg-destructive/10">
           <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-            <p className="text-destructive font-medium mb-2">Error loading data</p>
+            <p className="text-destructive font-medium mb-2">
+              Error loading data
+            </p>
             <p className="text-sm text-muted-foreground">{error}</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="mt-4"
               onClick={() => window.location.reload()}
             >
@@ -172,12 +185,15 @@ export default function CheckOfferingPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Check Offering</h1>
-        <Button onClick={() => router.push("/upload-offering")}>
-          <Plus className="mr-2 h-4 w-4" /> Upload Offer Letter
-        </Button>
-      </div>
+      <PageHeader
+        title="Check Offering"
+        description="Manage uploaded offer letters and view insights."
+        actions={
+          <Button onClick={() => router.push("/upload-offering")}>
+            <Plus className="mr-2 h-4 w-4" /> Upload Offer Letter
+          </Button>
+        }
+      />
 
       {offerings.length === 0 ? (
         <Card>
@@ -187,7 +203,8 @@ export default function CheckOfferingPage() {
             </div>
             <h3 className="text-lg font-semibold">No offer letters yet</h3>
             <p className="text-sm text-muted-foreground max-w-sm mt-2 mb-6">
-              Upload an offer letter to get AI-powered analysis and insights about your compensation package.
+              Upload an offer letter to get AI-powered analysis and insights
+              about your compensation package.
             </p>
             <Button onClick={() => router.push("/upload-offering")}>
               Upload First Offer Letter
@@ -203,7 +220,7 @@ export default function CheckOfferingPage() {
                 <TableHead>Job Title / Company</TableHead>
                 <TableHead>Uploaded File</TableHead>
                 <TableHead className="text-right">Upload Date</TableHead>
-                <TableHead className="w-[80px] text-right">Actions</TableHead>
+                <TableHead className="w-20 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -251,7 +268,10 @@ export default function CheckOfferingPage() {
         </div>
       )}
 
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && closeDelete()}>
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && closeDelete()}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Job Offer</AlertDialogTitle>
