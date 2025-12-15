@@ -48,10 +48,6 @@ export class OfferingModel {
   static async getAllOfferLetters(userId: string) {
     return await prisma.offerLetter.findMany({
       where: { userId },
-      include: {
-        analysis: true,
-        redFlags: true,
-      },
       orderBy: {
         createdAt: "desc",
       },
@@ -107,6 +103,24 @@ export class OfferingModel {
       }
 
       return analysis;
+    });
+  }
+
+  /**
+   * Create offer analysis (without transaction)
+   */
+  static async createOfferAnalysis(data: OfferAnalysisData) {
+    return await prisma.offerAnalysis.create({
+      data,
+    });
+  }
+
+  /**
+   * Create red flags
+   */
+  static async createRedFlags(redFlags: RedFlagData[]) {
+    return await prisma.redFlag.createMany({
+      data: redFlags,
     });
   }
 }
