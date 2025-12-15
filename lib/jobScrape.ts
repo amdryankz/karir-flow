@@ -56,24 +56,42 @@ export class LinkedInScraper {
 
     try {
       const allJobs: LinkedInJob[] = [];
-      const jobsPerPage = 100;
-      const maxPages = Math.ceil(maxJobs / jobsPerPage); // Hitung berapa halaman yang dibutuhkan
+      const jobsPerPage = 25; // LinkedIn menampilkan 25 jobs per halaman
+      const maxPages = Math.ceil(maxJobs / jobsPerPage) + 2; // Tambah 2 pages ekstra untuk antisipasi filter
 
       console.log(
         `🔍 Target: ${maxJobs} jobs, akan scrape ${maxPages} halaman`
       );
 
       // Buat beberapa variasi keyword untuk memperluas scope
-      // Simplified: use only first 2-3 words from keywords to avoid overly complex searches
       const keywordParts = keywords.split(",").map((k) => k.trim());
-      const primaryKeyword = keywordParts[0] || keywords.substring(0, 50); // Use first role or first 50 chars
+      const primaryKeyword = keywordParts[0] || keywords.substring(0, 50);
 
-      const keywordVariations = [
-        primaryKeyword, // Keyword utama (simplified)
-        techSkills.length > 0
-          ? `${primaryKeyword} ${techSkills.slice(0, 2).join(" ")}`
-          : primaryKeyword, // Keyword + first 2 tech skills
+      // Buat lebih banyak variasi untuk dapat lebih banyak unique jobs
+      const keywordVariations: string[] = [
+        primaryKeyword, // Keyword utama
       ];
+
+      // Tambah variasi dengan tech skills jika ada
+      if (techSkills.length > 0) {
+        keywordVariations.push(`${primaryKeyword} ${techSkills[0]}`); // Keyword + skill 1
+        if (techSkills.length > 1) {
+          keywordVariations.push(`${primaryKeyword} ${techSkills[1]}`); // Keyword + skill 2
+        }
+        if (techSkills.length > 2) {
+          keywordVariations.push(
+            `${primaryKeyword} ${techSkills.slice(0, 2).join(" ")}`
+          ); // Keyword + 2 skills
+        }
+      }
+
+      // Tambah variasi dengan keyword parts lainnya jika ada
+      if (keywordParts.length > 1) {
+        keywordVariations.push(keywordParts[1]); // Keyword alternatif kedua
+      }
+
+      // Deduplicate variations
+      const uniqueVariations = Array.from(new Set(keywordVariations));
 
       // Scrape multiple pages dengan berbagai keyword variations
       for (
@@ -81,7 +99,7 @@ export class LinkedInScraper {
         pageNum < maxPages && allJobs.length < maxJobs;
         pageNum++
       ) {
-        for (const keywordVariation of keywordVariations) {
+        for (const keywordVariation of uniqueVariations) {
           if (allJobs.length >= maxJobs) break;
 
           const searchUrl = this.buildSearchUrl(
