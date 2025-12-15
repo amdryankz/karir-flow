@@ -8,12 +8,12 @@ export interface DocumentData {
   userId: string;
 }
 
-export interface UpdateDocumentData extends DocumentData {
+export interface updateCvData extends DocumentData {
   documentId: string;
 }
 
 export class CvModel {
-  static async getFirstDocument(userId?: string) {
+  static async getCvUser(userId?: string) {
     return await prisma.pdfDocument.findFirst({
       where: userId ? { userId } : undefined,
       include: {
@@ -31,7 +31,7 @@ export class CvModel {
     });
   }
 
-  static async createDocument(data: DocumentData) {
+  static async createCv(data: DocumentData) {
     return await prisma.$transaction(async (tx) => {
       const newDocument = await tx.pdfDocument.create({
         data: {
@@ -53,7 +53,7 @@ export class CvModel {
     });
   }
 
-  static async updateDocument(data: UpdateDocumentData) {
+  static async updateCv(data: updateCvData) {
     return await prisma.$transaction(async (tx) => {
       const updatedDocument = await tx.pdfDocument.update({
         where: {

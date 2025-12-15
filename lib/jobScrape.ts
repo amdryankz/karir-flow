@@ -29,7 +29,6 @@ interface ScraperOptions {
 }
 
 export class LinkedInScraper {
-  private baseUrl = "https://www.linkedin.com";
   private headers = {
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -352,7 +351,7 @@ export class LinkedInScraper {
     return matchedSkills;
   }
 
-  private countSkillMatches(jobSkills: string[], userSkills: string[]): number {
+  private countSkillMatches(jobSkills: string[]): number {
     // jobSkills sekarang sudah berisi tech stack yang match saja (dari extractSkills)
     // Jadi tinggal return length-nya
     return jobSkills.length;

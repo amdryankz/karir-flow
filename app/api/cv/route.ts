@@ -5,7 +5,7 @@ import { CvService } from "@/services/cv";
 export async function GET(req: NextRequest) {
   try {
     const id = req.headers.get("x-user-id") as string;
-    const data = await CvService.getFirstDocument(id);
+    const data = await CvService.getCvUser(id);
 
     return NextResponse.json({
       message: "Successfully fetch data CV",
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
-    const savedDocument = await CvService.createDocument(file, id);
+    const savedDocument = await CvService.createCv(file, id);
 
     return NextResponse.json({
       message: "PDF berhasil di-parse dan disimpan",
@@ -42,7 +42,7 @@ export async function PUT(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
-    const updatedDocument = await CvService.updateDocument(file, id);
+    const updatedDocument = await CvService.updateCv(file, id);
 
     return NextResponse.json({
       message: "Successfully updated CV",

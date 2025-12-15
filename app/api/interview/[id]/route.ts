@@ -17,7 +17,6 @@ export async function GET(
       throw new NotFoundError("Interview not found");
     }
 
-    // Self-healing: If finishedAt is null but all questions answered, finish it.
     if (
       !interview.finishedAt &&
       interview.answers.length >= interview.questionSet.questions.length &&

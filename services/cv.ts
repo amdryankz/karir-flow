@@ -1,11 +1,11 @@
 import { BadRequestError } from "@/utils/customError";
 import { PDFParse } from "pdf-parse";
 import { uploadPdfBuffer, deletePdfFromStorage } from "@/lib/storage";
-import { CvModel, DocumentData, UpdateDocumentData } from "@/models/cv";
+import { CvModel, DocumentData, updateCvData } from "@/models/cv";
 
 export class CvService {
-  static async getFirstDocument(userId?: string) {
-    return await CvModel.getFirstDocument(userId);
+  static async getCvUser(userId?: string) {
+    return await CvModel.getCvUser(userId);
   }
 
   static async parsePdfFile(file: File) {
@@ -31,7 +31,7 @@ export class CvService {
     };
   }
 
-  static async createDocument(file: File, userId: string) {
+  static async createCv(file: File, userId: string) {
     const parsedData = await this.parsePdfFile(file);
     const pdfUrl = await uploadPdfBuffer(parsedData.buffer, file.name);
 
@@ -43,11 +43,11 @@ export class CvService {
       userId: userId,
     };
 
-    return await CvModel.createDocument(dbData);
+    return await CvModel.createCv(dbData);
   }
 
-  static async updateDocument(file: File, userId: string) {
-    const existingDocument = await CvModel.getFirstDocument(userId);
+  static async updateCv(file: File, userId: string) {
+    const existingDocument = await CvModel.getCvUser(userId);
 
     if (!existingDocument) {
       throw new BadRequestError("No existing document found");
@@ -59,7 +59,7 @@ export class CvService {
 
     const pdfUrl = await uploadPdfBuffer(parsedData.buffer, file.name);
 
-    const dbData: UpdateDocumentData = {
+    const dbData: updateCvData = {
       documentId: existingDocument.id,
       fileName: file.name,
       pdfUrl: pdfUrl,
@@ -68,6 +68,6 @@ export class CvService {
       userId: userId,
     };
 
-    return await CvModel.updateDocument(dbData);
+    return await CvModel.updateCv(dbData);
   }
 }

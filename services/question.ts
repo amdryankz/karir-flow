@@ -89,10 +89,7 @@ export class QuestionService {
     return await QuestionModel.createQuestionSet(questionSetData);
   }
 
-  static async generateFeedbackAnswerFromAI(
-    audioFile: File,
-    question: string
-  ): Promise<any> { // Using any to handle AI response format
+  static async generateFeedbackAnswerFromAI(audioFile: File, question: string) {
     const arrayBuffer = await audioFile.arrayBuffer();
     const base64Audio = Buffer.from(arrayBuffer).toString("base64");
 

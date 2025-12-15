@@ -4,7 +4,6 @@ import prisma from "@/lib/prisma";
 export interface QuestionData {
   text: string;
   order: number;
-  voiceUrl?: string;
 }
 
 export interface QuestionSetData {
@@ -63,25 +62,23 @@ export class QuestionModel {
   }
 
   static async createQuestionSet(data: QuestionSetData) {
-    return await prisma.$transaction(async (tx) => {
-      return await tx.questionSet.create({
-        data: {
-          userId: data.userId,
-          description: data.description,
-          questions: {
-            createMany: {
-              data: data.questions,
-            },
+    return await prisma.questionSet.create({
+      data: {
+        userId: data.userId,
+        description: data.description,
+        questions: {
+          createMany: {
+            data: data.questions,
           },
         },
-        include: {
-          questions: {
-            orderBy: {
-              order: "asc",
-            },
+      },
+      include: {
+        questions: {
+          orderBy: {
+            order: "asc",
           },
         },
-      });
+      },
     });
   }
 

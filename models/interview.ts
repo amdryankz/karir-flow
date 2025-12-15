@@ -7,6 +7,11 @@ export interface InterviewData {
   parentId?: string;
 }
 
+export interface InterviewUpdateData {
+  finishedAt: Date;
+  totalScore: number;
+}
+
 export class InterviewModel {
   static async getAll(userId: string) {
     return await prisma.interviewSession.findMany({
@@ -74,7 +79,7 @@ export class InterviewModel {
     });
   }
 
-  static async updateInterview(id: string, data: any) {
+  static async updateInterview(id: string, data: InterviewUpdateData) {
     return await prisma.interviewSession.update({
       where: { id },
       data,
