@@ -351,7 +351,7 @@ export class LinkedInScraper {
     return matchedSkills;
   }
 
-  private countSkillMatches(jobSkills: string[]): number {
+  private countSkillMatches(jobSkills: string[], userSkills: string[]): number {
     // jobSkills sekarang sudah berisi tech stack yang match saja (dari extractSkills)
     // Jadi tinggal return length-nya
     return jobSkills.length;

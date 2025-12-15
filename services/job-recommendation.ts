@@ -72,6 +72,8 @@ export class JobRecommendationService {
   static async getJobRecommendations(
     userId: string
   ): Promise<JobRecommendationResult> {
+    console.log("📋 Fetching user CV...");
+
     // Get user's CV from database
     const cvDoc = await CvModel.getCvUser(userId);
 
@@ -82,14 +84,21 @@ export class JobRecommendationService {
     }
 
     const cvContent = cvDoc.extractedText.content;
+    console.log("✅ CV found, analyzing with AI...");
 
     // Analyze CV with AI
     const analysis = await this.analyzeCvWithAI(cvContent);
+    console.log("🤖 AI Analysis complete:", analysis);
 
     // Prepare scraper options
     const keywords = analysis.keywords || analysis.rolesIdentified[0] || "";
     const experienceLevel = this.mapExperienceLevelToLinkedIn(
       analysis.experienceLevel
+    );
+
+    console.log(`🔍 Searching jobs with keywords: "${keywords}"`);
+    console.log(
+      `📊 Experience level: ${analysis.experienceLevel} (${experienceLevel})`
     );
 
     // Scrape LinkedIn jobs
@@ -106,6 +115,7 @@ export class JobRecommendationService {
     });
 
     await scraper.close();
+    console.log(`✅ Found ${jobs.length} relevant jobs`);
 
     return {
       jobs,
