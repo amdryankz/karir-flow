@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { signOut, useSession } from "@/lib/authClient";
 import { resetCvStatusCache } from "@/hooks/use-cv-status";
 
@@ -101,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
-                <a href="/dashboard" className="flex items-center w-full">
+                <Link href="/dashboard" className="flex items-center w-full" prefetch>
                   {/* Expanded: dashboard banner logo */}
                   <div className="w-full group-data-[collapsible=icon]:hidden">
                     {mounted ? (
@@ -143,7 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       />
                     )}
                   </div>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -159,18 +160,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     pathname.startsWith(item.url + "/");
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        tooltip={item.title}
-                        isActive={isActive}
-                      >
-                        <a
-                          href={item.url}
-                          aria-current={isActive ? "page" : undefined}
-                        >
+                      <SidebarMenuButton asChild tooltip={item.title} isActive={isActive}>
+                        <Link href={item.url} aria-current={isActive ? "page" : undefined} prefetch>
                           <item.icon />
                           <span>{item.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );

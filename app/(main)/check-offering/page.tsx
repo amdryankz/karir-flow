@@ -142,10 +142,15 @@ export default function CheckOfferingPage() {
             </Button>
           }
         />
-        <div className="flex h-[200px] items-center justify-center rounded-md border bg-card">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Loading offer letters...</span>
+        <div className="rounded-md border bg-card p-4">
+          <div className="space-y-3">
+            <div className="h-6 w-48 bg-accent rounded-md animate-pulse" />
+            <div className="h-10 w-full bg-accent rounded-md animate-pulse" />
+            <div className="grid gap-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-12 w-full bg-accent rounded-md animate-pulse" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
