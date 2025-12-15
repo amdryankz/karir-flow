@@ -85,4 +85,24 @@ export class InterviewModel {
       data,
     });
   }
+
+  static async getDashboardStats(userId: string) {
+    return await prisma.interviewSession.findMany({
+      where: {
+        userId,
+        finishedAt: { not: null },
+      },
+      select: {
+        id: true,
+        title: true,
+        startedAt: true,
+        finishedAt: true,
+        totalScore: true,
+      },
+      orderBy: {
+        startedAt: "desc",
+      },
+      take: 10,
+    });
+  }
 }

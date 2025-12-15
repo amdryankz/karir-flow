@@ -123,4 +123,26 @@ export class OfferingModel {
       data: redFlags,
     });
   }
+
+  static async getDashboardStats(userId: string) {
+    // Get latest 5 offer letters
+    const offers = await prisma.offerLetter.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+    
+    // Get total count
+    const totalCount = await prisma.offerLetter.count({
+      where: { userId },
+    });
+
+    return { offers, totalCount };
+  }
 }
