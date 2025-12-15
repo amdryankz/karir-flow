@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
 import {
   ExternalLink,
   Loader2,
@@ -34,6 +35,7 @@ export default function JobRecommendationPage() {
   const [error, setError] = useState<null | { code?: number; message: string }>(
     null
   );
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,15 +63,29 @@ export default function JobRecommendationPage() {
           : [];
 
         const items: JobItem[] = raw.map((j: any) => {
-          const skillsRaw = j.skills ?? j.keywords ?? j.skillsText ?? j.skills_string ?? [];
-          const matchedRaw = j.matchedSkills ?? j.skillMatches ?? j.matched ?? [];
+          const skillsRaw =
+            j.skills ?? j.keywords ?? j.skillsText ?? j.skills_string ?? [];
+          const matchedRaw =
+            j.matchedSkills ?? j.skillMatches ?? j.matched ?? [];
 
           const toArray = (v: any): string[] => {
             if (!v) return [];
-            if (Array.isArray(v)) return v.map((x) => (typeof x === "string" ? x : x?.name ?? String(x))).filter(Boolean);
-            if (typeof v === "string") return v.split(/[,|]/).map((s) => s.trim()).filter(Boolean);
+            if (Array.isArray(v))
+              return v
+                .map((x) => (typeof x === "string" ? x : x?.name ?? String(x)))
+                .filter(Boolean);
+            if (typeof v === "string")
+              return v
+                .split(/[,|]/)
+                .map((s) => s.trim())
+                .filter(Boolean);
             // object with keys
-            if (typeof v === "object") return Object.values(v).map((x: any) => (typeof x === "string" ? x : x?.name ?? String(x))).filter(Boolean);
+            if (typeof v === "object")
+              return Object.values(v)
+                .map((x: any) =>
+                  typeof x === "string" ? x : x?.name ?? String(x)
+                )
+                .filter(Boolean);
             return [];
           };
 
@@ -80,7 +96,9 @@ export default function JobRecommendationPage() {
             id:
               j.id ??
               j.jobId ??
-              `${j.title ?? j.jobTitle}-${j.company ?? j.companyName}-${j.jobUrl ?? j.url ?? Math.random().toString(36).slice(2)}`,
+              `${j.title ?? j.jobTitle}-${j.company ?? j.companyName}-${
+                j.jobUrl ?? j.url ?? Math.random().toString(36).slice(2)
+              }`,
             title: j.title ?? j.jobTitle ?? "Untitled Role",
             company: j.company ?? j.companyName ?? "Unknown Company",
             location: j.location ?? j.city ?? j.region ?? "",
@@ -89,7 +107,9 @@ export default function JobRecommendationPage() {
             jobUrl: j.jobUrl ?? j.url ?? j.link ?? "#",
             skills: skillsArr,
             matchedSkillsCount:
-              j.matchedSkillsCount ?? j.matchCount ?? (matchedArr.length > 0 ? matchedArr.length : undefined),
+              j.matchedSkillsCount ??
+              j.matchCount ??
+              (matchedArr.length > 0 ? matchedArr.length : undefined),
           } as JobItem;
         });
         if (!cancelled) setJobs(items);
@@ -104,7 +124,7 @@ export default function JobRecommendationPage() {
     return () => {
       cancelled = true;
     };
-  }, [data?.user?.id]);
+  }, [data?.user?.id, reloadKey]);
 
   // Helper to show posted date nicely like "2 days ago"
   const formatPosted = (postedAt?: string) => {
@@ -123,11 +143,20 @@ export default function JobRecommendationPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Job Recommendations</h1>
-        <div className="flex items-center gap-3 rounded-lg border bg-card p-6">
+        <PageHeader
+          title="Job Recommendations"
+          description="Analyzing your CV and finding roles tailored to you."
+          actions={
+            <Button variant="outline" size="sm" disabled>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Refreshing
+            </Button>
+          }
+        />
+        <div className="mt-6 flex items-center gap-3 rounded-lg border bg-card p-6">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            Analyzing your CV and finding jobs… This may take 30–60 seconds.
+            This may take 30–60 seconds.
           </p>
         </div>
       </div>
@@ -138,7 +167,19 @@ export default function JobRecommendationPage() {
     const code = error.code;
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Job Recommendations</h1>
+        <PageHeader
+          title="Job Recommendations"
+          description={""}
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setReloadKey((k) => k + 1)}
+            >
+              Refresh
+            </Button>
+          }
+        />
         <Card className="max-w-xl">
           <CardContent className="p-6 space-y-3">
             <p className="text-sm text-destructive font-medium">
@@ -186,7 +227,19 @@ export default function JobRecommendationPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-6">Job Recommendations</h1>
+      <PageHeader
+        title="Job Recommendations"
+        description="Roles matched to your skills and preferences."
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setReloadKey((k) => k + 1)}
+          >
+            Refresh
+          </Button>
+        }
+      />
       {jobs.length === 0 ? (
         <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">
           No jobs found for your profile yet. Try again later.

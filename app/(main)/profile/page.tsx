@@ -14,6 +14,7 @@ import {
 import { Upload, FileText, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
 
 interface CvDocument {
   id: string;
@@ -183,13 +184,15 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-2xl">
+    <div className="p-6">
+      <PageHeader
+        title="My Profile"
+        description="View your details and update your CV."
+      />
+      <Card className="mt-6 w-full max-w-3xl">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
-          <CardDescription>
-            View your details and update your CV
-          </CardDescription>
+          <CardTitle className="text-xl font-semibold">Account</CardTitle>
+          <CardDescription>Your basic information</CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
           <section className="space-y-2">

@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Upload, FileText, X, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
 
 export default function UploadOfferingPage() {
   const router = useRouter();
@@ -152,16 +153,15 @@ export default function UploadOfferingPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-2xl">
+    <div className="p-6">
+      <PageHeader
+        title="Upload Offer Letter"
+        description="Analyze your compensation and spot potential red flags."
+      />
+      <Card className="mt-6 w-full max-w-3xl">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">
-            Upload Offer Letter
-          </CardTitle>
-          <CardDescription>
-            Upload a PDF of your offer letter to analyze compensation, clarity,
-            and potential red flags.
-          </CardDescription>
+          <CardTitle className="text-xl font-semibold">Details</CardTitle>
+          <CardDescription>Provide a title and upload a PDF</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
