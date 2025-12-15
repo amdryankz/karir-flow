@@ -56,7 +56,7 @@ export class LinkedInScraper {
 
     try {
       const allJobs: LinkedInJob[] = [];
-      const jobsPerPage = 25;
+      const jobsPerPage = 100;
       const maxPages = Math.ceil(maxJobs / jobsPerPage); // Hitung berapa halaman yang dibutuhkan
 
       console.log(
@@ -64,9 +64,15 @@ export class LinkedInScraper {
       );
 
       // Buat beberapa variasi keyword untuk memperluas scope
+      // Simplified: use only first 2-3 words from keywords to avoid overly complex searches
+      const keywordParts = keywords.split(",").map((k) => k.trim());
+      const primaryKeyword = keywordParts[0] || keywords.substring(0, 50); // Use first role or first 50 chars
+
       const keywordVariations = [
-        keywords, // Keyword utama
-        techSkills.length > 0 ? `${keywords} ${techSkills[0]}` : keywords, // Keyword + tech skill utama
+        primaryKeyword, // Keyword utama (simplified)
+        techSkills.length > 0
+          ? `${primaryKeyword} ${techSkills.slice(0, 2).join(" ")}`
+          : primaryKeyword, // Keyword + first 2 tech skills
       ];
 
       // Scrape multiple pages dengan berbagai keyword variations
@@ -98,6 +104,21 @@ export class LinkedInScraper {
 
             // Parse HTML with cheerio
             const $ = cheerio.load(response.data);
+
+            // Debug: Check what selectors exist
+            const baseCardCount = $(".base-card").length;
+            const jobCardCount = $(
+              ".job-search-card, .jobs-search__results-list li"
+            ).length;
+            console.log(
+              `🔍 Debug: base-card count: ${baseCardCount}, job-card count: ${jobCardCount}`
+            );
+
+            if (baseCardCount === 0 && jobCardCount === 0) {
+              console.log(
+                "⚠️ No job cards found - LinkedIn may have changed HTML structure or blocked request"
+              );
+            }
 
             // Extract job cards
             const pageJobs = this.extractJobData(
@@ -248,23 +269,66 @@ export class LinkedInScraper {
     const enrichedJobs: LinkedInJob[] = [];
     let count = 0;
 
-    $(".base-card").each((index, element) => {
+    // Try multiple selectors - LinkedIn changes these frequently
+    const selectors = [
+      ".base-card",
+      ".job-search-card",
+      ".jobs-search__results-list li",
+      "li.result-card",
+    ];
+
+    let $jobCards = $();
+    for (const selector of selectors) {
+      $jobCards = $(selector);
+      if ($jobCards.length > 0) {
+        console.log(
+          `✅ Using selector: ${selector} (${$jobCards.length} cards found)`
+        );
+        break;
+      }
+    }
+
+    $jobCards.each((index, element) => {
       if (count >= maxJobs) return false;
 
       try {
         const $card = $(element);
 
-        const title = $card.find(".base-search-card__title").text().trim();
-        const company = $card.find(".base-search-card__subtitle").text().trim();
-        const location = $card.find(".job-search-card__location").text().trim();
+        // Try multiple selectors for each field
+        const title = (
+          $card.find(".base-search-card__title").text() ||
+          $card.find(".job-search-card__title").text() ||
+          $card.find("h3, .result-card__title").text()
+        ).trim();
+
+        const company = (
+          $card.find(".base-search-card__subtitle").text() ||
+          $card.find(".job-search-card__company-name").text() ||
+          $card.find("h4, .result-card__subtitle").text()
+        ).trim();
+
+        const location = (
+          $card.find(".job-search-card__location").text() ||
+          $card.find(".result-card__location").text()
+        ).trim();
+
         const applyUrl =
-          $card.find("a.base-card__full-link").attr("href") || "";
+          $card.find("a.base-card__full-link").attr("href") ||
+          $card.find("a[href*='/jobs/view/']").attr("href") ||
+          $card.find("a").first().attr("href") ||
+          "";
+
         const dateAttr = $card.find("time").attr("datetime");
         const dateText = $card
-          .find(".job-search-card__listdate, .job-search-card__listdate--new")
+          .find(
+            ".job-search-card__listdate, .job-search-card__listdate--new, time"
+          )
           .text()
           .trim();
-        const snippet = $card.find(".base-search-card__snippet").text().trim();
+        const snippet = (
+          $card.find(".base-search-card__snippet").text() ||
+          $card.find(".job-search-card__snippet").text()
+        ).trim();
 
         // Extract job ID from URL
         const jobIdMatch = applyUrl.match(/\/jobs\/view\/(\d+)/);
