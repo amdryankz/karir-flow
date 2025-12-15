@@ -10,5 +10,9 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <PageShell showAuth>{children}</PageShell>;
+  return (
+    <PageShell showAuth centerContent>
+      {children}
+    </PageShell>
+  );
 }
