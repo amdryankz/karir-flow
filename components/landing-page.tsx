@@ -139,8 +139,8 @@ export function LandingPage() {
         </Link>
         <div className="flex items-center gap-3">
           <ModeToggle />
-          <Button variant="outline" className="hidden sm:inline-flex">
-            Sign in
+          <Button variant="outline" className="hidden sm:inline-flex" asChild>
+            <Link href="/login">Sign in</Link>
           </Button>
         </div>
       </header>
@@ -176,11 +176,15 @@ export function LandingPage() {
             variants={fadeUp}
             className="mt-6 flex flex-wrap items-center gap-3"
           >
-            <Button className="group">
-              Get started
-              <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+            <Button className="group" asChild>
+              <Link href="/register">
+                Get started
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </Button>
-            <Button variant="outline">Explore features</Button>
+            <Button variant="outline" asChild>
+              <Link href="#features">Explore features</Link>
+            </Button>
           </motion.div>
           <motion.div
             variants={fadeUp}
@@ -246,7 +250,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-6 pb-24 lg:px-8">
+      <section id="features" className="mx-auto w-full max-w-7xl px-6 pb-24 lg:px-8">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {(
             [
@@ -302,11 +306,15 @@ export function LandingPage() {
             start.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button className="group">
-              Create free account{" "}
-              <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+            <Button className="group" asChild>
+              <Link href="/register">
+                Create free account{" "}
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </Button>
-            <Button variant="outline">See how it works</Button>
+            <Button variant="outline" asChild>
+              <Link href="#features">See how it works</Link>
+            </Button>
           </div>
         </div>
       </section>
