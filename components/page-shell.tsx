@@ -17,7 +17,7 @@ export function PageShell({
   centerContent = false,
 }: Props) {
   return (
-    <div className="relative min-h-screen overflow-clip font-sans flex flex-col">
+    <div className="relative min-h-screen flex flex-col bg-background">
       {withGradient && (
         <div className="pointer-events-none absolute inset-0 -z-10 gradient-bg" />
       )}
@@ -25,7 +25,7 @@ export function PageShell({
       {centerContent ? (
         <main className="flex-1 grid place-items-center px-4">{children}</main>
       ) : (
-        children
+        <main className="flex-1">{children}</main>
       )}
     </div>
   );

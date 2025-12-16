@@ -5,8 +5,8 @@ import Link from "next/link";
 
 export function Logo({
   href = "/",
-  width = 140,
-  height = 28,
+  width = 200,
+  height = 200,
 }: {
   href?: string;
   width?: number;
@@ -23,7 +23,7 @@ export function Logo({
         alt="Karir Flow logo"
         width={width}
         height={height}
-        className="block dark:hidden"
+        className="block dark:hidden h-14 w-auto"
         priority
       />
       <Image
@@ -31,7 +31,7 @@ export function Logo({
         alt="Karir Flow logo"
         width={width}
         height={height}
-        className="hidden dark:block"
+        className="hidden dark:block h-14 w-auto"
         priority
       />
     </Link>
