@@ -114,34 +114,40 @@ export function LandingPage() {
       />
       <div className="pointer-events-none absolute inset-0 -z-10 gradient-bg" />
 
-      <header className="mx-auto flex w-full max-w-7xl items-center justify-between pe-6 py-5 lg:pe-8 lg:ps-4">
-        <Link
-          href="/"
-          className="flex items-center gap-3"
-          aria-label="Karir Flow home"
-        >
-          <Image
-            src="/logo-dashboard-lightmode.svg"
-            alt="Karir Flow logo"
-            width={200}
-            height={200}
-            className="block dark:hidden"
-            priority
-          />
-          <Image
-            src="/logo-dashboard-darkmode.svg"
-            alt="Karir Flow logo"
-            width={200}
-            height={200}
-            className="hidden dark:block"
-            priority
-          />
-        </Link>
-        <div className="flex items-center gap-3">
-          <ModeToggle />
-          <Button variant="outline" className="hidden sm:inline-flex" asChild>
-            <Link href="/login">Sign in</Link>
-          </Button>
+      <header className="sticky top-0 z-50 w-full border-b border-[#e4ebe4] dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-lg supports-backdrop-filter:bg-white/60 dark:supports-backdrop-filter:bg-zinc-950/60">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between  pe-6 ps-2 lg:pe-8 lg:ps-4">
+          <Link
+            href="/"
+            className="flex items-center gap-3"
+            aria-label="Karir Flow home"
+          >
+            <Image
+              src="/logo-dashboard-lightmode.svg"
+              alt="Karir Flow logo"
+              width={200}
+              height={200}
+              className="block dark:hidden h-14 w-auto"
+              priority
+            />
+            <Image
+              src="/logo-dashboard-darkmode.svg"
+              alt="Karir Flow logo"
+              width={200}
+              height={200}
+              className="hidden dark:block h-14 w-auto"
+              priority
+            />
+          </Link>
+          <div className="flex items-center gap-3">
+            <ModeToggle />
+            <Button
+              variant="outline"
+              className="hidden sm:inline-flex rounded-lg"
+              asChild
+            >
+              <Link href="/login">Sign in</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -250,7 +256,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="features" className="mx-auto w-full max-w-7xl px-6 pb-24 lg:px-8">
+      <section
+        id="features"
+        className="mx-auto w-full max-w-7xl px-6 pb-24 lg:px-8"
+      >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {(
             [

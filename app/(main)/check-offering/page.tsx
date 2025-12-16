@@ -180,20 +180,6 @@ export default function CheckOfferingPage() {
             <Skeleton className="h-10 w-48 rounded-full" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card
-                key={i}
-                className="border-none shadow-sm bg-card rounded-xl"
-              >
-                <CardContent className="p-6">
-                  <Skeleton className="h-5 w-24 rounded mb-2" />
-                  <Skeleton className="h-8 w-16 rounded-lg" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
           <Card className="border-none shadow-sm bg-card rounded-xl overflow-hidden">
             <CardHeader className="border-b bg-muted/30 px-6 py-4">
               <Skeleton className="h-6 w-40 rounded-lg" />
