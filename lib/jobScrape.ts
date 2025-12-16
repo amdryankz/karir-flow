@@ -56,11 +56,12 @@ export class LinkedInScraper {
 
     try {
       const allJobs: LinkedInJob[] = [];
+      const targetRawJobs = maxJobs + 15; // Scrape lebih banyak untuk antisipasi filter (misal: 40 + 15 = 55)
       const jobsPerPage = 25; // LinkedIn menampilkan 25 jobs per halaman
-      const maxPages = Math.ceil(maxJobs / jobsPerPage) + 2; // Tambah 2 pages ekstra untuk antisipasi filter
+      const maxPages = Math.ceil(targetRawJobs / jobsPerPage) + 1; // Hitung pages yang dibutuhkan
 
       console.log(
-        `🔍 Target: ${maxJobs} jobs, akan scrape ${maxPages} halaman`
+        `🔍 Target: ${maxJobs} jobs (will scrape ~${targetRawJobs} raw jobs), ${maxPages} halaman`
       );
 
       // Buat beberapa variasi keyword untuk memperluas scope
@@ -96,11 +97,11 @@ export class LinkedInScraper {
       // Scrape multiple pages dengan berbagai keyword variations
       for (
         let pageNum = 0;
-        pageNum < maxPages && allJobs.length < maxJobs;
+        pageNum < maxPages && allJobs.length < targetRawJobs;
         pageNum++
       ) {
         for (const keywordVariation of uniqueVariations) {
-          if (allJobs.length >= maxJobs) break;
+          if (allJobs.length >= targetRawJobs) break;
 
           const searchUrl = this.buildSearchUrl(
             keywordVariation,
@@ -141,7 +142,7 @@ export class LinkedInScraper {
             // Extract job cards
             const pageJobs = this.extractJobData(
               $,
-              maxJobs - allJobs.length,
+              targetRawJobs - allJobs.length,
               techSkills
             );
 
@@ -162,13 +163,13 @@ export class LinkedInScraper {
                   job.linkedinJobId !== ""
               );
 
-              if (!isDuplicate && allJobs.length < maxJobs) {
+              if (!isDuplicate && allJobs.length < targetRawJobs) {
                 allJobs.push(job);
               }
             }
 
             console.log(
-              `✅ Found ${pageJobs.length} jobs, Total unique: ${allJobs.length}/${maxJobs}`
+              `✅ Found ${pageJobs.length} jobs, Total unique: ${allJobs.length}/${targetRawJobs} (target final: ${maxJobs})`
             );
 
             // Delay to avoid rate limiting
@@ -218,21 +219,21 @@ export class LinkedInScraper {
       // Apply max limit
       finalJobs = finalJobs.slice(0, maxJobs);
 
-      console.log(`✅ Successfully scraped ${allJobs.length} total jobs`);
+      console.log(`✅ Successfully scraped ${allJobs.length} raw jobs`);
       console.log(
         `🧹 ${
           allJobs.length - jobsWithoutAsterisk.length
-        } jobs filtered (contain asterisk)`
+        } jobs filtered out (contain asterisk)`
       );
       console.log(
-        `🎯 ${sortedJobsWithMatch.length} jobs with skill matches, ${jobsWithoutMatch.length} without`
+        `🎯 After filter: ${sortedJobsWithMatch.length} jobs with skill matches, ${jobsWithoutMatch.length} without`
       );
       if (sortedJobsWithMatch.length > 0) {
         console.log(
           `📊 Top match: ${sortedJobsWithMatch[0]?.skillMatchCount || 0} skills`
         );
       }
-      console.log(`📦 Returning ${finalJobs.length} jobs (max: ${maxJobs})`);
+      console.log(`📦 Returning top ${finalJobs.length} jobs (limit: ${maxJobs})`);
 
       return finalJobs;
     } catch (error: any) {
