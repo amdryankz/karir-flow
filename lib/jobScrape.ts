@@ -56,26 +56,26 @@ export class LinkedInScraper {
 
     try {
       const allJobs: LinkedInJob[] = [];
-      const targetRawJobs = maxJobs + 15; // Scrape lebih banyak untuk antisipasi filter (misal: 40 + 15 = 55)
-      const jobsPerPage = 25; // LinkedIn menampilkan 25 jobs per halaman
-      const maxPages = Math.ceil(targetRawJobs / jobsPerPage) + 1; // Hitung pages yang dibutuhkan
+      const targetRawJobs = maxJobs + 15;
+      const jobsPerPage = 25;
+      const maxPages = Math.ceil(targetRawJobs / jobsPerPage) + 1;
 
       console.log(
-        `🔍 Target: ${maxJobs} jobs (will scrape ~${targetRawJobs} raw jobs), ${maxPages} halaman`
+        `🔍 Target: ${maxJobs} jobs (will scrape ~${targetRawJobs} raw jobs)`
       );
 
-      // Pisahkan keywords berdasarkan koma (prioritas dari kiri ke kanan)
-      const keywordParts = keywords.split(",").map((k) => k.trim()).filter(k => k);
-      
-      console.log(`🎯 Keywords to search (in order): ${keywordParts.join(", ")}`);
+      const keywordParts = keywords
+        .split(",")
+        .map((k) => k.trim())
+        .filter((k) => k);
 
-      // Scrape dengan setiap keyword SATU PER SATU sampai cukup
+      console.log(`🎯 Keywords: ${keywordParts.join(", ")}`);
+
       for (const currentKeyword of keywordParts) {
         if (allJobs.length >= targetRawJobs) break;
 
-        console.log(`\n🔍 Searching with keyword: "${currentKeyword}"`);
-        
-        // Scrape multiple pages untuk keyword ini
+        console.log(`\n🔍 Searching: "${currentKeyword}"`);
+
         for (
           let pageNum = 0;
           pageNum < maxPages && allJobs.length < targetRawJobs;
@@ -99,25 +99,8 @@ export class LinkedInScraper {
               validateStatus: (status: number) => status === 200,
             });
 
-            // Parse HTML with cheerio
             const $ = cheerio.load(response.data);
 
-            // Debug: Check what selectors exist
-            const baseCardCount = $(".base-card").length;
-            const jobCardCount = $(
-              ".job-search-card, .jobs-search__results-list li"
-            ).length;
-            console.log(
-              `🔍 Debug: base-card count: ${baseCardCount}, job-card count: ${jobCardCount}`
-            );
-
-            if (baseCardCount === 0 && jobCardCount === 0) {
-              console.log(
-                "⚠️ No job cards found - LinkedIn may have changed HTML structure or blocked request"
-              );
-            }
-
-            // Extract job cards
             const pageJobs = this.extractJobData(
               $,
               targetRawJobs - allJobs.length,
@@ -125,20 +108,27 @@ export class LinkedInScraper {
             );
 
             if (pageJobs.length === 0) {
-              console.log(
-                `⚠️ No more jobs found on page ${pageNum + 1} with keyword "${currentKeyword}"`
-              );
-              break; // Stop paging untuk keyword ini, lanjut keyword berikutnya
+              console.log(`⚠️ No jobs found on page ${pageNum + 1}`);
+              break;
             }
 
-            // Filter duplicate jobs by linkedinJobId
             let newJobsAdded = 0;
             for (const job of pageJobs) {
-              const isDuplicate = allJobs.some(
-                (existingJob) =>
-                  existingJob.linkedinJobId === job.linkedinJobId &&
-                  job.linkedinJobId !== ""
-              );
+              const isDuplicate = allJobs.some((existingJob) => {
+                if (
+                  job.linkedinJobId &&
+                  existingJob.linkedinJobId === job.linkedinJobId
+                ) {
+                  return true;
+                }
+                const sameTitle =
+                  existingJob.title.toLowerCase().trim() ===
+                  job.title.toLowerCase().trim();
+                const sameCompany =
+                  existingJob.company.toLowerCase().trim() ===
+                  job.company.toLowerCase().trim();
+                return sameTitle && sameCompany;
+              });
 
               if (!isDuplicate && allJobs.length < targetRawJobs) {
                 allJobs.push(job);
@@ -147,16 +137,11 @@ export class LinkedInScraper {
             }
 
             console.log(
-              `✅ Added ${newJobsAdded} new jobs, Total unique: ${allJobs.length}/${targetRawJobs} (target final: ${maxJobs})`
+              `✅ Added ${newJobsAdded} jobs, Total: ${allJobs.length}/${targetRawJobs}`
             );
 
-            // Jika sudah cukup, stop scraping
-            if (allJobs.length >= targetRawJobs) {
-              console.log(`🎯 Target reached! Stopping scrape.`);
-              break;
-            }
+            if (allJobs.length >= targetRawJobs) break;
 
-            // Delay to avoid rate limiting
             await new Promise((resolve) => setTimeout(resolve, 1000));
           } catch (pageError: any) {
             console.error(
@@ -166,27 +151,38 @@ export class LinkedInScraper {
             continue;
           }
         }
-        
-        console.log(`✅ Finished scraping keyword "${currentKeyword}". Total jobs: ${allJobs.length}`);
       }
 
-      // Hitung skill match untuk semua jobs
-      allJobs.forEach((job) => {
-        const matchCount = this.countSkillMatches(job.skills, techSkills);
-        job.skillMatchCount = matchCount;
+      const uniqueJobs: LinkedInJob[] = [];
+      const seenKeys = new Set<string>();
+
+      for (const job of allJobs) {
+        const uniqueKey = job.linkedinJobId
+          ? `id_${job.linkedinJobId}`
+          : `tc_${job.title.toLowerCase().trim()}_${job.company
+              .toLowerCase()
+              .trim()}`;
+
+        if (!seenKeys.has(uniqueKey)) {
+          seenKeys.add(uniqueKey);
+          uniqueJobs.push(job);
+        }
+      }
+
+      console.log(`🔍 Deduplicated: ${allJobs.length} → ${uniqueJobs.length}`);
+
+      uniqueJobs.forEach((job) => {
+        job.skillMatchCount = this.countSkillMatches(job.skills, techSkills);
       });
 
-      // Filter: Hapus job yang mengandung asterisk (*)
-      const jobsWithoutAsterisk = allJobs.filter((job) => {
-        const hasAsterisk =
-          job.title.includes("*") ||
-          job.company.includes("*") ||
-          job.location.includes("*") ||
-          job.description.includes("*");
-        return !hasAsterisk;
-      });
+      const jobsWithoutAsterisk = uniqueJobs.filter(
+        (job) =>
+          !job.title.includes("*") &&
+          !job.company.includes("*") &&
+          !job.location.includes("*") &&
+          !job.description.includes("*")
+      );
 
-      // Filter: prioritaskan job dengan skill match, tapi tetap tampilkan yang tidak match
       const jobsWithMatch = jobsWithoutAsterisk.filter(
         (job) => (job.skillMatchCount || 0) > 0
       );
@@ -194,33 +190,19 @@ export class LinkedInScraper {
         (job) => (job.skillMatchCount || 0) === 0
       );
 
-      // Sort: job dengan skill match terbanyak di atas, sisanya di bawah
-      const sortedJobsWithMatch = jobsWithMatch.sort((a, b) => {
-        return (b.skillMatchCount || 0) - (a.skillMatchCount || 0);
-      });
-
-      // Gabungkan: jobs dengan match di atas, tanpa match di bawah
-      let finalJobs = [...sortedJobsWithMatch, ...jobsWithoutMatch];
-
-      // Apply max limit
-      finalJobs = finalJobs.slice(0, maxJobs);
-
-      console.log(`✅ Successfully scraped ${allJobs.length} raw jobs`);
-      console.log(
-        `🧹 ${
-          allJobs.length - jobsWithoutAsterisk.length
-        } jobs filtered out (contain asterisk)`
+      const sortedJobsWithMatch = jobsWithMatch.sort(
+        (a, b) => (b.skillMatchCount || 0) - (a.skillMatchCount || 0)
       );
-      console.log(
-        `🎯 After filter: ${sortedJobsWithMatch.length} jobs with skill matches, ${jobsWithoutMatch.length} without`
+
+      const finalJobs = [...sortedJobsWithMatch, ...jobsWithoutMatch].slice(
+        0,
+        maxJobs
       );
-      if (sortedJobsWithMatch.length > 0) {
-        console.log(
-          `📊 Top match: ${sortedJobsWithMatch[0]?.skillMatchCount || 0} skills`
-        );
-      }
+
       console.log(
-        `📦 Returning top ${finalJobs.length} jobs (limit: ${maxJobs})`
+        `✅ Scraped ${uniqueJobs.length} jobs, filtered ${
+          uniqueJobs.length - jobsWithoutAsterisk.length
+        }, returning ${finalJobs.length}`
       );
 
       return finalJobs;
@@ -244,28 +226,19 @@ export class LinkedInScraper {
     jobType?: string,
     pageNum: number = 0
   ): string {
-    const baseUrl = "https://www.linkedin.com/jobs/search";
-    const start = pageNum * 25; // LinkedIn shows 25 jobs per page
-
     const params = new URLSearchParams({
-      keywords: keywords,
-      location: location,
-      sortBy: "DD", // Sort by date (most recent first)
+      keywords,
+      location,
+      sortBy: "DD",
       position: "1",
       pageNum: pageNum.toString(),
-      start: start.toString(),
+      start: (pageNum * 25).toString(),
     });
 
-    // Add filters
-    if (experienceLevel) {
-      params.append("f_E", experienceLevel); // 1=Internship, 2=Entry level, 3=Associate, 4=Mid-Senior, 5=Director, 6=Executive
-    }
+    if (experienceLevel) params.append("f_E", experienceLevel);
+    if (jobType) params.append("f_JT", jobType);
 
-    if (jobType) {
-      params.append("f_JT", jobType); // F=Full-time, P=Part-time, C=Contract, T=Temporary, I=Internship
-    }
-
-    return `${baseUrl}?${params.toString()}`;
+    return `https://www.linkedin.com/jobs/search?${params.toString()}`;
   }
 
   private extractJobData(
@@ -276,7 +249,6 @@ export class LinkedInScraper {
     const enrichedJobs: LinkedInJob[] = [];
     let count = 0;
 
-    // Try multiple selectors - LinkedIn changes these frequently
     const selectors = [
       ".base-card",
       ".job-search-card",
@@ -287,12 +259,7 @@ export class LinkedInScraper {
     let $jobCards = $();
     for (const selector of selectors) {
       $jobCards = $(selector);
-      if ($jobCards.length > 0) {
-        console.log(
-          `✅ Using selector: ${selector} (${$jobCards.length} cards found)`
-        );
-        break;
-      }
+      if ($jobCards.length > 0) break;
     }
 
     $jobCards.each((index, element) => {
@@ -301,7 +268,6 @@ export class LinkedInScraper {
       try {
         const $card = $(element);
 
-        // Try multiple selectors for each field
         const title = (
           $card.find(".base-search-card__title").text() ||
           $card.find(".job-search-card__title").text() ||
@@ -337,13 +303,11 @@ export class LinkedInScraper {
           $card.find(".job-search-card__snippet").text()
         ).trim();
 
-        // Extract job ID from URL
         const jobIdMatch = applyUrl.match(/\/jobs\/view\/(\d+)/);
         const linkedinJobId = jobIdMatch ? jobIdMatch[1] : "";
 
-        // Only add if has required fields
         if (title && company && applyUrl) {
-          const enrichedJob: LinkedInJob = {
+          enrichedJobs.push({
             title,
             company,
             location: location || "Not specified",
@@ -360,9 +324,7 @@ export class LinkedInScraper {
             skills: this.extractSkills(title, snippet, techSkills),
             benefits: [],
             isRemote: this.isRemoteJob(location, title),
-          };
-
-          enrichedJobs.push(enrichedJob);
+          });
           count++;
         }
       } catch (error) {
@@ -370,7 +332,6 @@ export class LinkedInScraper {
       }
     });
 
-    console.log(`📦 Extracted ${enrichedJobs.length} valid jobs`);
     return enrichedJobs;
   }
 
@@ -401,30 +362,15 @@ export class LinkedInScraper {
     description: string,
     userTechSkills: string[] = []
   ): string[] {
-    const matchedSkills: string[] = [];
+    if (!userTechSkills.length) return [];
+
     const combinedText = `${title} ${description}`.toLowerCase();
-
-    // Hanya cek tech skills dari user (dari AI)
-    if (!userTechSkills || userTechSkills.length === 0) {
-      return []; // Tidak ada tech skills dari user
-    }
-
-    // Cek setiap tech skill user apakah ada di job description
-    userTechSkills.forEach((userSkill) => {
-      const lowerSkill = userSkill.toLowerCase().trim();
-
-      // Cek apakah skill ini ada di job (exact atau partial match)
-      if (combinedText.includes(lowerSkill)) {
-        matchedSkills.push(userSkill);
-      }
-    });
-
-    return matchedSkills;
+    return userTechSkills.filter((skill) =>
+      combinedText.includes(skill.toLowerCase().trim())
+    );
   }
 
   private countSkillMatches(jobSkills: string[], userSkills: string[]): number {
-    // jobSkills sekarang sudah berisi tech stack yang match saja (dari extractSkills)
-    // Jadi tinggal return length-nya
     return jobSkills.length;
   }
 
@@ -435,45 +381,6 @@ export class LinkedInScraper {
   }
 
   async close() {
-    // No cleanup needed for axios approach
     console.log("✅ Scraper closed");
-  }
-
-  // Scrape job details page
-  async scrapeJobDetails(jobUrl: string): Promise<Partial<LinkedInJob>> {
-    try {
-      const response = await axios.get(jobUrl, {
-        headers: this.headers,
-        timeout: 10000,
-      });
-
-      const $ = cheerio.load(response.data);
-
-      // Extract job criteria
-      const criteria: { [key: string]: string } = {};
-      $(".description__job-criteria-item").each((_, element) => {
-        const $el = $(element);
-        const key = $el
-          .find(".description__job-criteria-subheader")
-          .text()
-          .trim()
-          .toLowerCase();
-        const value = $el.find(".description__job-criteria-text").text().trim();
-        if (key && value) {
-          criteria[key] = value;
-        }
-      });
-
-      return {
-        description: $(".description__text, .show-more-less-html__markup")
-          .text()
-          .trim(),
-        employmentType: criteria["employment type"] || undefined,
-        seniority: criteria["seniority level"] || undefined,
-      };
-    } catch (error) {
-      console.error("Error scraping job details:", error);
-      return {};
-    }
   }
 }
