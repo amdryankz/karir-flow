@@ -24,6 +24,7 @@ type JobItem = {
   postedAt?: string; // ISO string or plain text
   isRemote?: boolean;
   jobUrl: string;
+  applyUrl: string;
   skills?: string[];
   matchedSkillsCount?: number;
 };
@@ -35,9 +36,8 @@ export default function JobRecommendationPage() {
   const [error, setError] = useState<null | { code?: number; message: string }>(
     null
   );
-  const [reloadKey, setReloadKey] = useState(0);
 
-  const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+  const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
   const cacheKey = useMemo(() => {
     const uid = data?.user?.id || "anonymous";
     return `job-recommendation:${uid}`;
@@ -166,7 +166,7 @@ export default function JobRecommendationPage() {
     return () => {
       cancelled = true;
     };
-  }, [data?.user?.id, reloadKey, cacheKey]);
+  }, [data?.user?.id, cacheKey]);
 
   // Helper to show posted date nicely like "2 days ago"
   const formatPosted = (postedAt?: string) => {
@@ -188,12 +188,6 @@ export default function JobRecommendationPage() {
         <PageHeader
           title="Job Recommendations"
           description="Analyzing your CV and finding roles tailored to you."
-          actions={
-            <Button variant="outline" size="sm" disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Refreshing
-            </Button>
-          }
         />
         <div className="mt-6 flex items-center gap-3 rounded-lg border bg-card p-6">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -212,15 +206,6 @@ export default function JobRecommendationPage() {
         <PageHeader
           title="Job Recommendations"
           description={""}
-          actions={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setReloadKey((k) => k + 1)}
-            >
-              Refresh
-            </Button>
-          }
         />
         <Card className="max-w-xl">
           <CardContent className="p-6 space-y-3">
@@ -272,27 +257,13 @@ export default function JobRecommendationPage() {
       <PageHeader
         title="Job Recommendations"
         description="Roles matched to your skills and preferences."
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              try {
-                localStorage.removeItem(cacheKey);
-              } catch (_) {}
-              setReloadKey((k) => k + 1);
-            }}
-          >
-            Refresh
-          </Button>
-        }
       />
       {jobs.length === 0 ? (
-        <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">
+        <div className="mt-6 rounded-lg border bg-card p-6 text-sm text-muted-foreground">
           No jobs found for your profile yet. Try again later.
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {jobs.map((job) => (
             <JobCard key={job.id} job={job} formatPosted={formatPosted} />
           ))}
@@ -319,10 +290,6 @@ function JobCard({
   job: JobItem;
   formatPosted: (postedAt?: string) => string | undefined;
 }) {
-  const skillsShown = useMemo(
-    () => (job.skills || []).slice(0, 4),
-    [job.skills]
-  );
   const postedText = formatPosted(job.postedAt);
 
   const onClick = () => {
@@ -366,23 +333,6 @@ function JobCard({
           )}
         </div>
         <ExternalLink className="h-5 w-5 text-muted-foreground" />
-      </div>
-
-      <div className="mt-3">
-        <p className="text-xs text-muted-foreground">
-          Matched skills:{" "}
-          {job.matchedSkillsCount ?? (job.skills ? job.skills.length : 0)}
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {skillsShown.map((skill) => (
-            <span
-              key={skill}
-              className="inline-flex items-center rounded-full bg-secondary px-2 py-1 text-xs text-foreground"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
       </div>
     </div>
   );

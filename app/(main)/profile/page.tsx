@@ -14,7 +14,6 @@ import {
 import { Upload, FileText, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CvDocument {
@@ -165,9 +164,8 @@ export default function UserProfilePage() {
   // While loading: show skeletons instead of spinner to avoid repeated animations
   if (loading) {
     return (
-      <div className="p-6">
-        <PageHeader title="My Profile" description="View your details and update your CV." />
-        <Card className="mt-6 w-full max-w-3xl">
+      <div className="flex min-h-screen items-center justify-center p-4 bg-background">
+        <Card className="w-full max-w-2xl">
           <CardHeader>
             <Skeleton className="h-6 w-40" />
             <Skeleton className="mt-2 h-4 w-60" />
@@ -198,15 +196,11 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div className="p-6">
-      <PageHeader
-        title="My Profile"
-        description="View your details and update your CV."
-      />
-      <Card className="mt-6 w-full max-w-3xl">
+    <div className="flex min-h-screen items-center justify-center p-4 bg-background">
+      <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Account</CardTitle>
-          <CardDescription>Your basic information</CardDescription>
+          <CardTitle className="text-xl font-semibold">My Profile</CardTitle>
+          <CardDescription>View your details and update your CV.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
           <section className="space-y-2">

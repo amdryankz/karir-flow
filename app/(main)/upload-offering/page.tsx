@@ -95,7 +95,18 @@ export default function UploadOfferingPage() {
       if (xhr.status >= 200 && xhr.status < 300) {
         setStatus("success");
         setProgress(100);
-        toast.success("Offer letter uploaded successfully");
+        try {
+          const json = JSON.parse(xhr.responseText);
+          const id = json?.data?.id;
+          toast.success("Offer letter uploaded successfully");
+          if (id) {
+            // Redirect directly to the detail page of the uploaded offer
+            router.push(`/check-offering/${id}`);
+            return;
+          }
+        } catch (_) {
+          // fall through to default behavior
+        }
       } else {
         setStatus("error");
         try {

@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Karir Flow",
-    template: "%s | Karir Flow",
+    default: "OPTIMA",
+    template: "%s | OPTIMA",
   },
   description: "Career assistant platform",
   icons: {
