@@ -112,9 +112,17 @@ function InterviewResultContent() {
   };
 
   const calculateAverageScore = () => {
-    if (!interview?.answers || interview.answers.length === 0) return 0;
-    const total = interview.answers.reduce((sum, a) => sum + a.score, 0);
-    return Math.round((total / interview.answers.length) * 10); // Convert 1-10 to 0-100
+    if (!interview?.questionSet?.questions || interview.questionSet.questions.length === 0) return 0;
+    
+    const totalQuestions = interview.questionSet.questions.length;
+    const totalScore = (interview.answers || []).reduce((sum, a) => sum + (a.score || 0), 0);
+    
+    // Calculate average based on TOTAL questions
+    // Each answer is 1-10. Max total score is totalQuestions * 10.
+    // We want 0-100 scale.
+    // Formula: (totalScore / (totalQuestions * 10)) * 100 = (totalScore / totalQuestions) * 10
+    
+    return Math.round((totalScore / totalQuestions) * 10);
   };
 
   const formatDuration = (start: string, end: string | null) => {
@@ -218,7 +226,7 @@ function InterviewResultContent() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="bg-white dark:bg-zinc-900 border-none shadow-md rounded-2xl overflow-hidden">
             <CardHeader className="bg-[#f9f9f9] dark:bg-zinc-800/50 border-b border-[#e4ebe4] dark:border-zinc-800 pb-4">
-              <CardTitle className="text-[#001e00] dark:text-zinc-100 font-medium">
+              <CardTitle className="text-[#001e00] mt-4 dark:text-zinc-100 font-medium">
                 Overall Score
               </CardTitle>
               <CardDescription className="text-[#5e6d55] dark:text-zinc-400">
@@ -243,7 +251,7 @@ function InterviewResultContent() {
 
           <Card className="bg-white dark:bg-zinc-900 border-none shadow-md rounded-2xl overflow-hidden">
             <CardHeader className="bg-[#f9f9f9] dark:bg-zinc-800/50 border-b border-[#e4ebe4] dark:border-zinc-800 pb-4">
-              <CardTitle className="text-[#001e00] dark:text-zinc-100 font-medium">
+              <CardTitle className="text-[#001e00] mt-4 dark:text-zinc-100 font-medium">
                 Session Details
               </CardTitle>
               <CardDescription className="text-[#5e6d55] dark:text-zinc-400">

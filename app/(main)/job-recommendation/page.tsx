@@ -358,8 +358,6 @@ function JobCard({
   const postedText = formatPosted(job.postedAt);
 
   const onClick = () => {
-    console.log(job, "jobb");
-
     window.open(job.jobUrl, "_blank", "noopener,noreferrer");
   };
 
