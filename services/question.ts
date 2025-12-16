@@ -30,7 +30,7 @@ export class QuestionService {
   ): Promise<string[]> {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
     });
 
@@ -59,7 +59,18 @@ export class QuestionService {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    return JSON.parse(responseText);
+    // Clean response text - remove markdown code blocks if present
+    const cleanedText = responseText
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .trim();
+
+    try {
+      return JSON.parse(cleanedText);
+    } catch (error) {
+      console.error('Failed to parse AI response:', cleanedText);
+      throw new Error('AI response parsing failed. Please try again.');
+    }
   }
 
   static async createQuestionSet(
@@ -113,16 +124,17 @@ export class QuestionService {
   }
 
   static async generateFeedbackAnswerFromAI(audioFile: File, question: string) {
-    const arrayBuffer = await audioFile.arrayBuffer();
-    const base64Audio = Buffer.from(arrayBuffer).toString("base64");
+    try {
+      const arrayBuffer = await audioFile.arrayBuffer();
+      const base64Audio = Buffer.from(arrayBuffer).toString("base64");
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: { responseMimeType: "application/json" },
-    });
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        generationConfig: { responseMimeType: "application/json" },
+      });
 
-    const prompt = `
+      const prompt = `
     You are an expert HR Interviewer & Voice Coach. 
     The user is answering this interview question: "${question}".
 
@@ -143,25 +155,77 @@ export class QuestionService {
       "feedback_tone": "You spoke a bit too fast and sounded nervous. You used 'umm' 4 times.",
       "score": 8, // Score 1-10
       "speech_pace": "TOO_FAST" | "NORMAL" | "TOO_SLOW",
-      "confidence_level": "HIGH" | "MEDIUM" | "LOW"
+      "confidence_level": "HIGH" | "MEDIUM" | "LOW",
       "tips": "One specific actionable tip to improve"
     }
     `;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: audioFile.type || "audio/webm",
-          data: base64Audio,
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            mimeType: audioFile.type || "audio/webm",
+            data: base64Audio,
+          },
         },
-      },
-    ]);
+      ]);
 
-    const responseText = result.response.text();
-    const parsed = JSON.parse(responseText);
+      const responseText = result.response.text();
+      
+      // Clean response text - remove markdown code blocks if present
+      const cleanedText = responseText
+        .replace(/```json\s*/g, '')
+        .replace(/```\s*/g, '')
+        .trim();
 
-    return parsed;
+      // Enhanced error handling for JSON parsing
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanedText);
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', cleanedText);
+        console.error('Parse error:', parseError);
+        
+        // Fallback response when AI fails
+        parsed = {
+          transcription: "Transcription unavailable",
+          feedback_content: "AI processing failed. Please try again.",
+          feedback_tone: "Unable to analyze tone",
+          score: 5,
+          speech_pace: "NORMAL",
+          confidence_level: "MEDIUM",
+          tips: "Please ensure clear audio recording"
+        };
+      }
+
+      // Validate required fields and provide defaults
+      const validatedResponse = {
+        transcription: parsed.transcription || "Transcription unavailable",
+        feedback_content: parsed.feedback_content || "No feedback available",
+        feedback_tone: parsed.feedback_tone || "No tone analysis available",
+        score: typeof parsed.score === "number" && parsed.score >= 1 && parsed.score <= 10 
+          ? parsed.score 
+          : 5,
+        speech_pace: parsed.speech_pace || "NORMAL",
+        confidence_level: parsed.confidence_level || "MEDIUM",
+        tips: parsed.tips || "No tips available"
+      };
+
+      return validatedResponse;
+    } catch (error) {
+      console.error('Error in generateFeedbackAnswerFromAI:', error);
+      
+      // Return fallback response on any error
+      return {
+        transcription: "Transcription failed",
+        feedback_content: "AI processing failed. Please try again.",
+        feedback_tone: "Unable to analyze tone",
+        score: 5,
+        speech_pace: "NORMAL",
+        confidence_level: "MEDIUM",
+        tips: "Please check your microphone and try again"
+      };
+    }
   }
 
   static async createAnswer(
@@ -191,14 +255,14 @@ export class QuestionService {
     const dbData: AnswerData = {
       transcription: answer.transcription,
       audioUrl: audioUrl,
-      feedbackContent: answer.feedback_content || answer.feedbackContent,
-      feedbackTone: answer.feedback_tone || answer.feedbackTone,
+      feedbackContent: answer.feedback_content,
+      feedbackTone: answer.feedback_tone,
       score:
         typeof answer.score === "number"
           ? answer.score
           : parseInt(answer.score) || 5,
-      speechPace: answer.speech_pace || answer.speechPace,
-      confidentLevel: answer.confidence_level || answer.confidentLevel,
+      speechPace: answer.speech_pace,
+      confidentLevel: answer.confidence_level,
       tips: answer.tips,
       interviewSessionId: interviewSessionId,
       questionId: questionId,

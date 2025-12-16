@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, RotateCcw, Loader2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, RotateCcw, Loader2, ArrowLeft, Play, Pause } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { Suspense } from "react";
@@ -27,7 +27,53 @@ type Answer = {
   confidentLevel: string;
   tips: string;
   questionId: string;
+  audioUrl: string | null;
 };
+
+function AudioPlayer({ audioUrl }: { audioUrl: string }) {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onEnded={() => setIsPlaying(false)}
+        onPause={() => setIsPlaying(false)}
+        onPlay={() => setIsPlaying(true)}
+        className="hidden"
+      />
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-8 w-8 rounded-full border-[#14a800] text-[#14a800] hover:bg-[#14a800] hover:text-white transition-colors"
+        onClick={togglePlay}
+        title={isPlaying ? "Pause recording" : "Play recording"}
+      >
+        {isPlaying ? (
+          <Pause className="h-4 w-4" />
+        ) : (
+          <Play className="h-4 w-4" />
+        )}
+      </Button>
+      <span className="text-xs text-[#5e6d55] dark:text-zinc-400 font-medium">
+        {isPlaying ? "Playing..." : "Play Recording"}
+      </span>
+    </div>
+  );
+}
 
 type Question = {
   id: string;
@@ -318,8 +364,11 @@ function InterviewResultContent() {
                   {answer ? (
                     <CardContent className="space-y-6 p-6">
                       <div className="space-y-2">
-                        <div className="text-sm font-medium text-[#5e6d55] dark:text-zinc-400 uppercase tracking-wide">
-                          Your Answer
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm font-medium text-[#5e6d55] dark:text-zinc-400 uppercase tracking-wide">
+                            Your Answer
+                          </div>
+                          {answer.audioUrl && <AudioPlayer audioUrl={answer.audioUrl} />}
                         </div>
                         <p className="text-base text-[#001e00] dark:text-zinc-200 leading-relaxed bg-[#f9f9f9] dark:bg-zinc-800/50 p-4 rounded-xl border border-[#e4ebe4] dark:border-zinc-800">
                           {answer.transcription ||
@@ -410,8 +459,10 @@ function InterviewResultContent() {
             <Link
               href={`/practice-interview/start?parentId=${
                 interview.id
-              }&description=${encodeURIComponent(
-                interview.questionSet.description
+              }&questionSetId=${
+                interview.questionSet.id
+              }&title=${encodeURIComponent(
+                interview.title
               )}`}
             >
               <RotateCcw className="mr-2 h-4 w-4" />
