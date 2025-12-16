@@ -24,13 +24,20 @@ export class QuestionService {
 
   static async generateQuestionsFromAI(
     cvContent: string,
-    jobDesc: string
+    jobDesc: string,
+    language: "english" | "indonesian" = "english",
+    questionCount: number = 5
   ): Promise<string[]> {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
     });
+
+    const languageInstruction =
+      language === "indonesian"
+        ? "Generate questions in Bahasa Indonesia."
+        : "Generate questions in English.";
 
     const prompt = `
     You are an expert HR Interviewer.
@@ -40,8 +47,9 @@ export class QuestionService {
     Job Description: "${jobDesc.slice(0, 5000)}"
 
     TASK:
-    Generate 2 interview questions specifically tailored to the candidate's experience and the job requirements.
+    Generate exactly ${questionCount} interview questions specifically tailored to the candidate's experience and the job requirements.
     Mix technical questions and behavioral questions.
+    ${languageInstruction}
 
     OUTPUT FORMAT:
     Return ONLY a JSON array of strings. Example:
@@ -54,7 +62,12 @@ export class QuestionService {
     return JSON.parse(responseText);
   }
 
-  static async createQuestionSet(userId: string, jobDesc: string) {
+  static async createQuestionSet(
+    userId: string,
+    jobDesc: string,
+    language: "english" | "indonesian" = "english",
+    questionCount: number = 5
+  ) {
     JobDescSchema.parse({ jobDesc });
 
     const pdf = await QuestionModel.getPdfDocumentWithText(userId);
@@ -64,13 +77,23 @@ export class QuestionService {
     }
 
     const content = pdf.extractedText.content;
-    const questions = await this.generateQuestionsFromAI(content, jobDesc);
+    const questions = await this.generateQuestionsFromAI(
+      content,
+      jobDesc,
+      language,
+      questionCount
+    );
 
-    const description = `Questions for ${jobDesc.slice(0, 50)}... based on CV.`;
+    const languageLabel =
+      language === "indonesian" ? "(Bahasa Indonesia)" : "(English)";
+    const description = `Questions for ${jobDesc.slice(
+      0,
+      50
+    )}... based on CV ${languageLabel}.`;
 
     const questionsData = await Promise.all(
       questions.map(async (q: string, index: number) => {
-        const audioBuffer = await synthesizeVoice(q);
+        const audioBuffer = await synthesizeVoice(q, language);
         const voiceUrl = await uploadAudioBuffer(
           audioBuffer,
           `question-${index + 1}.mp3`,
