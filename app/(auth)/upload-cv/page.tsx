@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, FileText, X, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { resetCvStatusCache } from "@/hooks/use-cv-status";
 
 export default function UploadCvPage() {
   const router = useRouter();
@@ -23,6 +24,26 @@ export default function UploadCvPage() {
   >("idle");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Informational toast when arriving without a CV yet
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/cv", { cache: "no-store" });
+        const json = await res.json().catch(() => null);
+        const hasCv = res.ok && json && json.data;
+        if (!hasCv && !cancelled) {
+          toast.error("Please Upload CV First");
+        }
+      } catch (_) {
+        if (!cancelled) toast.error("Please Upload CV First");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
@@ -98,6 +119,8 @@ export default function UploadCvPage() {
         setStatus("success");
         setProgress(100);
         toast.success("CV uploaded successfully!");
+        // Ensure in-app CV guard rechecks on next navigation
+        resetCvStatusCache();
       } else {
         setStatus("error");
         try {
@@ -248,7 +271,11 @@ export default function UploadCvPage() {
                   </div>
                   <Button
                     className="w-full"
-                    onClick={() => router.push("/dashboard")}
+                    onClick={() => {
+                      // Extra safety: clear CV status cache before leaving
+                      resetCvStatusCache();
+                      router.push("/dashboard");
+                    }}
                   >
                     Continue
                   </Button>

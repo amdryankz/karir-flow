@@ -11,7 +11,7 @@ export default function LoginLayout({
   children: React.ReactNode;
 }) {
   return (
-    <PageShell showAuth centerContent>
+    <PageShell showAuth authCta={{ href: "/register", label: "Sign up" }} centerContent>
       {children}
     </PageShell>
   );

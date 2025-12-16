@@ -33,9 +33,10 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  password: z.string().min(1, {
-    message: "Password is required.",
-  }),
+  password: z
+    .string()
+    .min(1, { message: "Password is required." })
+    .regex(/^\S+$/, { message: "Password cannot contain spaces." }),
 });
 
 export default function LoginPage() {
