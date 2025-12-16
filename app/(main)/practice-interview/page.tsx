@@ -116,18 +116,23 @@ export default function PracticeInterviewPage() {
 
   const getStatus = (interview: InterviewSession) => {
     const answers = interview.answers || [];
+    const totalQuestions = interview.questionSet?.questions?.length || 0;
 
     // Belum mulai - 0 jawaban
     if (answers.length === 0) {
       return "Not Started";
     }
+    
+    if (totalQuestions === 0) return "Not Started";
 
     // Hitung average score dari answers (score backend dalam skala 1-10)
     const totalScore = answers.reduce(
       (sum, answer) => sum + (answer.score || 0),
       0
     );
-    const avgScore = totalScore / answers.length;
+    
+    // Calculate average based on TOTAL questions
+    const avgScore = totalScore / totalQuestions; // Scale 0-10
 
     // Status berdasarkan performance
     if (avgScore >= 8) return "Excellent";
@@ -143,15 +148,19 @@ export default function PracticeInterviewPage() {
     }
 
     // Fallback: hitung dari answers jika totalScore belum diset
-    const answers = interview.answers;
-    if (!answers || answers.length === 0) return null;
+    const answers = interview.answers || [];
+    const totalQuestions = interview.questionSet?.questions?.length || 0;
+    
+    if (totalQuestions === 0) return 0;
+    
     const totalScore = answers.reduce(
       (sum, answer) => sum + (answer.score || 0),
       0
     );
-    const avgScore = totalScore / answers.length;
-    // Backend Gemini return 1-10, convert ke 0-100
-    return Math.round(avgScore * 10);
+    
+    // Calculate average based on TOTAL questions
+    // (totalScore / totalQuestions) * 10
+    return Math.round((totalScore / totalQuestions) * 10);
   };
 
   const formatDate = (dateString: string) => {

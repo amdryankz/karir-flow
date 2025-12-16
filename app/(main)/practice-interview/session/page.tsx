@@ -93,6 +93,12 @@ export default function InterviewSessionPage() {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  
+  // Audio Visualization Refs
+  const [audioVolume, setAudioVolume] = React.useState(0);
+  const audioContextRef = React.useRef<AudioContext | null>(null);
+  const analyserRef = React.useRef<AnalyserNode | null>(null);
+  const animationFrameRef = React.useRef<number | null>(null);
 
   // Text-to-Speech function using ElevenLabs audio from voiceUrl
   const speakQuestion = async (voiceUrl?: string) => {
@@ -103,14 +109,60 @@ export default function InterviewSessionPage() {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+    
+    // Cleanup previous audio context if any
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    setAudioVolume(0);
+
     setIsSpeaking(true);
 
     try {
       const audio = new Audio(voiceUrl);
+      audio.crossOrigin = "anonymous";
       audioRef.current = audio;
+
+      // Setup Audio Analysis for AI Voice
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioContextClass();
+      audioContextRef.current = audioContext;
+      
+      // Wait for audio to be ready to play
+      audio.addEventListener('canplay', () => {
+        try {
+            const source = audioContext.createMediaElementSource(audio);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            analyser.connect(audioContext.destination); // Connect to speakers
+            analyserRef.current = analyser;
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            const updateVolume = () => {
+                if (analyser && !audio.paused) {
+                    analyser.getByteFrequencyData(dataArray);
+                    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                    setAudioVolume(Math.min(1, average / 100)); 
+                    animationFrameRef.current = requestAnimationFrame(updateVolume);
+                } else if (audio.paused) {
+                    setAudioVolume(0);
+                }
+            };
+            updateVolume();
+        } catch (e) {
+            console.error("Error setting up audio visualization:", e);
+            // Fallback: just play audio without visualization if CORS or other issue
+        }
+      });
 
       audio.onended = () => {
         setIsSpeaking(false);
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        setAudioVolume(0);
       };
 
       audio.onerror = () => {
@@ -215,6 +267,8 @@ export default function InterviewSessionPage() {
     if (!session) return;
 
     const timer = setInterval(() => {
+      if (isUploading) return; // Pause timer while uploading/processing answer
+
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
@@ -249,6 +303,31 @@ export default function InterviewSessionPage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
+      
+      // Setup Audio Analysis
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioContextClass();
+      audioContextRef.current = audioContext;
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+      
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      
+      const updateVolume = () => {
+        if (analyser) {
+            analyser.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+            // Normalize: average is 0-255. We want 0-1.
+            // Speech usually isn't max volume, so we can boost it a bit.
+            setAudioVolume(Math.min(1, average / 100)); 
+            animationFrameRef.current = requestAnimationFrame(updateVolume);
+        }
+      };
+      updateVolume();
+
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -272,6 +351,14 @@ export default function InterviewSessionPage() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      
+      // Cleanup Audio Context
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+      setAudioVolume(0);
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, {
@@ -407,16 +494,16 @@ export default function InterviewSessionPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-[#f2f7f2] to-white dark:from-zinc-950 dark:to-zinc-900 font-sans text-[#001e00] dark:text-zinc-100 transition-colors duration-300">
+    <div className="h-screen overflow-hidden flex flex-col bg-background font-sans text-foreground transition-colors duration-300">
       {/* Header */}
       <div className="w-full flex justify-between items-center max-w-6xl mx-auto px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 text-sm font-semibold">
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-[#e4ebe4] dark:border-zinc-800 text-[#001e00] dark:text-zinc-100 shadow-sm">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card border border-border text-foreground shadow-sm">
             <div
               className={cn(
                 "h-2 w-2 rounded-full",
                 timeLeft > 120
-                  ? "bg-[#14a800] animate-pulse"
+                  ? "bg-primary animate-pulse"
                   : timeLeft > 60
                   ? "bg-yellow-500 animate-pulse"
                   : "bg-red-500 animate-pulse"
@@ -424,14 +511,14 @@ export default function InterviewSessionPage() {
             />
             <span>Time: {formatTime(timeLeft)}</span>
           </div>
-          <span className="px-4 py-2.5 rounded-full bg-[#14a800]/10 dark:bg-[#14a800]/20 border border-[#14a800]/20 dark:border-[#14a800]/30 text-[#14a800] shadow-sm">
+          <span className="px-4 py-2.5 rounded-full bg-primary/10 border border-primary/20 text-primary shadow-sm">
             Question {progressLabel}
           </span>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 text-[#5e6d55] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full dark:text-zinc-400 dark:hover:text-red-400 transition-colors"
+          className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
           onClick={handleEndSession}
           title="End Interview"
         >
@@ -460,12 +547,13 @@ export default function InterviewSessionPage() {
               <div
                 className={cn(
                   "absolute inset-0 rounded-full blur-3xl transition-opacity duration-500",
-                  isRecording ? "bg-[#14a800]/20 opacity-100" : "opacity-0"
+                  isRecording ? "bg-primary/20 opacity-100" : "opacity-0"
                 )}
               />
               <VoiceVisualizer
-                active={isRecording || isUploading}
-                className="scale-150 text-[#14a800] relative z-10"
+                active={isRecording || isUploading || isSpeaking}
+                volume={isRecording || isSpeaking ? audioVolume : 0}
+                className="scale-150 relative z-10 transition-colors duration-300 text-primary"
               />
             </div>
           </div>
@@ -475,9 +563,7 @@ export default function InterviewSessionPage() {
             <Button
               className={cn(
                 "flex-1 h-16 text-base font-semibold rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95",
-                isRecording
-                  ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-red-200 dark:shadow-red-900/50"
-                  : "bg-gradient-to-r from-[#14a800] to-[#0f7d00] hover:from-[#0f7d00] hover:to-[#0a5c00] text-white shadow-green-200 dark:shadow-green-900/50",
+                "bg-gradient-to-r from-[#14a800] to-[#0f7d00] hover:from-[#0f7d00] hover:to-[#0a5c00] text-white shadow-green-200 dark:shadow-green-900/50",
                 isUploading && "opacity-75 cursor-not-allowed"
               )}
               onClick={handleRecordToggle}

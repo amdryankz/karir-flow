@@ -159,6 +159,7 @@ function StartInterviewPageContent() {
 
         if (!generateRes.ok) {
           const body = await generateRes.json().catch(() => null);
+          console.error("Generate error:", body);
           if (
             generateRes.status === 404 &&
             body?.message?.includes("CV document not found")
@@ -169,7 +170,8 @@ function StartInterviewPageContent() {
           }
           throw new Error(
             body?.message ||
-              "Failed to generate interview questions. Please try again."
+            body?.error || 
+            `Server Error (${generateRes.status}): Failed to generate interview questions.`
           );
         }
 
