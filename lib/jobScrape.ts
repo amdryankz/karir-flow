@@ -64,54 +64,32 @@ export class LinkedInScraper {
         `🔍 Target: ${maxJobs} jobs (will scrape ~${targetRawJobs} raw jobs), ${maxPages} halaman`
       );
 
-      // Buat beberapa variasi keyword untuk memperluas scope
-      const keywordParts = keywords.split(",").map((k) => k.trim());
-      const primaryKeyword = keywordParts[0] || keywords.substring(0, 50);
+      // Pisahkan keywords berdasarkan koma (prioritas dari kiri ke kanan)
+      const keywordParts = keywords.split(",").map((k) => k.trim()).filter(k => k);
+      
+      console.log(`🎯 Keywords to search (in order): ${keywordParts.join(", ")}`);
 
-      // Buat lebih banyak variasi untuk dapat lebih banyak unique jobs
-      const keywordVariations: string[] = [
-        primaryKeyword, // Keyword utama
-      ];
+      // Scrape dengan setiap keyword SATU PER SATU sampai cukup
+      for (const currentKeyword of keywordParts) {
+        if (allJobs.length >= targetRawJobs) break;
 
-      // Tambah variasi dengan tech skills jika ada
-      if (techSkills.length > 0) {
-        keywordVariations.push(`${primaryKeyword} ${techSkills[0]}`); // Keyword + skill 1
-        if (techSkills.length > 1) {
-          keywordVariations.push(`${primaryKeyword} ${techSkills[1]}`); // Keyword + skill 2
-        }
-        if (techSkills.length > 2) {
-          keywordVariations.push(
-            `${primaryKeyword} ${techSkills.slice(0, 2).join(" ")}`
-          ); // Keyword + 2 skills
-        }
-      }
-
-      // Tambah variasi dengan keyword parts lainnya jika ada
-      if (keywordParts.length > 1) {
-        keywordVariations.push(keywordParts[1]); // Keyword alternatif kedua
-      }
-
-      // Deduplicate variations
-      const uniqueVariations = Array.from(new Set(keywordVariations));
-
-      // Scrape multiple pages dengan berbagai keyword variations
-      for (
-        let pageNum = 0;
-        pageNum < maxPages && allJobs.length < targetRawJobs;
-        pageNum++
-      ) {
-        for (const keywordVariation of uniqueVariations) {
-          if (allJobs.length >= targetRawJobs) break;
-
+        console.log(`\n🔍 Searching with keyword: "${currentKeyword}"`);
+        
+        // Scrape multiple pages untuk keyword ini
+        for (
+          let pageNum = 0;
+          pageNum < maxPages && allJobs.length < targetRawJobs;
+          pageNum++
+        ) {
           const searchUrl = this.buildSearchUrl(
-            keywordVariation,
+            currentKeyword,
             location,
             experienceLevel,
             jobType,
             pageNum
           );
 
-          console.log(`🔍 Page ${pageNum + 1}, Keyword: "${keywordVariation}"`);
+          console.log(`📄 Page ${pageNum + 1} for "${currentKeyword}"`);
 
           try {
             // Fetch page using axios
@@ -148,14 +126,13 @@ export class LinkedInScraper {
 
             if (pageJobs.length === 0) {
               console.log(
-                `⚠️ No more jobs found on page ${
-                  pageNum + 1
-                } with keyword "${keywordVariation}"`
+                `⚠️ No more jobs found on page ${pageNum + 1} with keyword "${currentKeyword}"`
               );
-              continue;
+              break; // Stop paging untuk keyword ini, lanjut keyword berikutnya
             }
 
             // Filter duplicate jobs by linkedinJobId
+            let newJobsAdded = 0;
             for (const job of pageJobs) {
               const isDuplicate = allJobs.some(
                 (existingJob) =>
@@ -165,12 +142,19 @@ export class LinkedInScraper {
 
               if (!isDuplicate && allJobs.length < targetRawJobs) {
                 allJobs.push(job);
+                newJobsAdded++;
               }
             }
 
             console.log(
-              `✅ Found ${pageJobs.length} jobs, Total unique: ${allJobs.length}/${targetRawJobs} (target final: ${maxJobs})`
+              `✅ Added ${newJobsAdded} new jobs, Total unique: ${allJobs.length}/${targetRawJobs} (target final: ${maxJobs})`
             );
+
+            // Jika sudah cukup, stop scraping
+            if (allJobs.length >= targetRawJobs) {
+              console.log(`🎯 Target reached! Stopping scrape.`);
+              break;
+            }
 
             // Delay to avoid rate limiting
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -182,6 +166,8 @@ export class LinkedInScraper {
             continue;
           }
         }
+        
+        console.log(`✅ Finished scraping keyword "${currentKeyword}". Total jobs: ${allJobs.length}`);
       }
 
       // Hitung skill match untuk semua jobs
@@ -233,7 +219,9 @@ export class LinkedInScraper {
           `📊 Top match: ${sortedJobsWithMatch[0]?.skillMatchCount || 0} skills`
         );
       }
-      console.log(`📦 Returning top ${finalJobs.length} jobs (limit: ${maxJobs})`);
+      console.log(
+        `📦 Returning top ${finalJobs.length} jobs (limit: ${maxJobs})`
+      );
 
       return finalJobs;
     } catch (error: any) {

@@ -115,10 +115,12 @@ export class JobRecommendationService {
     });
 
     await scraper.close();
-    
+
     // Return hanya 25 jobs terbaik (sudah sorted by skill match di scraper)
     const finalJobs = jobs.slice(0, 25);
-    console.log(`✅ Found ${jobs.length} relevant jobs, returning top ${finalJobs.length}`);
+    console.log(
+      `✅ Found ${jobs.length} relevant jobs, returning top ${finalJobs.length}`
+    );
 
     return {
       jobs: finalJobs,
