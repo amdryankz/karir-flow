@@ -3,12 +3,22 @@ export interface TTSOptions {
   modelId?: string;
   stability?: number;
   similarityBoost?: number;
+  language?: "english" | "indonesian";
 }
 
 export async function synthesizeVoice(
   text: string,
-  options: TTSOptions = {}
+  languageOrOptions?: "english" | "indonesian" | TTSOptions,
+  legacyOptions?: TTSOptions
 ): Promise<Buffer> {
+  // Handle both old signature (text, options) and new signature (text, language, options)
+  let options: TTSOptions = {};
+  if (typeof languageOrOptions === "string") {
+    options = { language: languageOrOptions, ...legacyOptions };
+  } else if (languageOrOptions) {
+    options = languageOrOptions;
+  }
+
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY env is missing");
 
