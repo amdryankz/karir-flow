@@ -166,7 +166,7 @@ export default function JobRecommendationPage() {
             location: j.location ?? j.city ?? j.region ?? "",
             postedAt: j.postedAt ?? j.posted_date ?? j.date ?? undefined,
             isRemote: j.isRemote ?? j.remote ?? false,
-            jobUrl: j.jobUrl ?? j.url ?? j.link ?? "#",
+            jobUrl: j.jobUrl ?? j.applyUrl ?? j.link ?? "#",
             skills: skillsArr,
             matchedSkillsCount:
               j.matchedSkillsCount ??
@@ -358,6 +358,8 @@ function JobCard({
   const postedText = formatPosted(job.postedAt);
 
   const onClick = () => {
+    console.log(job, "jobb");
+
     window.open(job.jobUrl, "_blank", "noopener,noreferrer");
   };
 
