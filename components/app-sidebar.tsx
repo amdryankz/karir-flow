@@ -102,7 +102,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
-                <Link href="/dashboard" className="flex items-center w-full" prefetch>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center w-full"
+                  prefetch
+                >
                   {/* Expanded: dashboard banner logo */}
                   <div className="w-full group-data-[collapsible=icon]:hidden">
                     {mounted ? (
@@ -160,8 +164,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     pathname.startsWith(item.url + "/");
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild tooltip={item.title} isActive={isActive}>
-                        <Link href={item.url} aria-current={isActive ? "page" : undefined} prefetch>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={item.title}
+                        isActive={isActive}
+                      >
+                        <Link
+                          href={item.url}
+                          aria-current={isActive ? "page" : undefined}
+                          prefetch
+                        >
                           <item.icon />
                           <span>{item.title}</span>
                         </Link>
