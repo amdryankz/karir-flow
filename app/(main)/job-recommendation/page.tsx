@@ -37,12 +37,50 @@ export default function JobRecommendationPage() {
   );
   const [reloadKey, setReloadKey] = useState(0);
 
+  const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+  const cacheKey = useMemo(() => {
+    const uid = data?.user?.id || "anonymous";
+    return `job-recommendation:${uid}`;
+  }, [data?.user?.id]);
+
+  // Cache helpers
+  const isFresh = (ts: number) => Date.now() - ts < CACHE_TTL_MS;
+  const getCache = (): { jobs: JobItem[]; ts: number } | null => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  };
+  const setCache = (items: JobItem[]) => {
+    try {
+      localStorage.setItem(
+        cacheKey,
+        JSON.stringify({ jobs: items, ts: Date.now() })
+      );
+    } catch (_) {
+      // ignore quota errors
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     async function fetchJobs() {
       try {
-        setLoading(true);
         setError(null);
+
+        // 1) Try cache first (instant render)
+        const cached = getCache();
+        if (cached && isFresh(cached.ts)) {
+          setJobs(cached.jobs);
+          setLoading(false);
+          return; // fresh cache → skip network
+        }
+
+        // 2) No fresh cache → fetch from API
+        setLoading(true);
         const res = await fetch("/api/job-recommendation", {
           headers: {
             "x-user-id": data?.user?.id || "",
@@ -112,7 +150,11 @@ export default function JobRecommendationPage() {
               (matchedArr.length > 0 ? matchedArr.length : undefined),
           } as JobItem;
         });
-        if (!cancelled) setJobs(items);
+        if (!cancelled) {
+          setJobs(items);
+          // 3) Update cache for subsequent fast loads
+          setCache(items);
+        }
       } catch (e: any) {
         if (!cancelled)
           setError({ message: e?.message || "Failed to load jobs" });
@@ -124,7 +166,7 @@ export default function JobRecommendationPage() {
     return () => {
       cancelled = true;
     };
-  }, [data?.user?.id, reloadKey]);
+  }, [data?.user?.id, reloadKey, cacheKey]);
 
   // Helper to show posted date nicely like "2 days ago"
   const formatPosted = (postedAt?: string) => {
@@ -234,7 +276,12 @@ export default function JobRecommendationPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setReloadKey((k) => k + 1)}
+            onClick={() => {
+              try {
+                localStorage.removeItem(cacheKey);
+              } catch (_) {}
+              setReloadKey((k) => k + 1);
+            }}
           >
             Refresh
           </Button>

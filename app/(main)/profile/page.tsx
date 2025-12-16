@@ -15,6 +15,7 @@ import { Upload, FileText, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CvDocument {
   id: string;
@@ -161,14 +162,27 @@ export default function UserProfilePage() {
     xhr.send(formData);
   };
 
-  // Safety guard: while loading or without CV, show blocking state
+  // While loading: show skeletons instead of spinner to avoid repeated animations
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-          <span>Loading profile…</span>
-        </div>
+      <div className="p-6">
+        <PageHeader title="My Profile" description="View your details and update your CV." />
+        <Card className="mt-6 w-full max-w-3xl">
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="mt-2 h-4 w-60" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-10 w-64" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
