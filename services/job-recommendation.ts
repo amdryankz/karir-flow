@@ -108,18 +108,21 @@ export class JobRecommendationService {
     const jobs = await scraper.scrapeJobs({
       keywords,
       location: "Indonesia",
-      maxJobs: 25,
+      maxJobs: 40, // Scrape 40 jobs dulu, nanti difilter jadi 25
       experienceLevel,
       jobType: "F", // Full-time
       techSkills: analysis.skills,
     });
 
     await scraper.close();
-    console.log(`✅ Found ${jobs.length} relevant jobs`);
+    
+    // Return hanya 25 jobs terbaik (sudah sorted by skill match di scraper)
+    const finalJobs = jobs.slice(0, 25);
+    console.log(`✅ Found ${jobs.length} relevant jobs, returning top ${finalJobs.length}`);
 
     return {
-      jobs,
-      totalJobs: jobs.length,
+      jobs: finalJobs,
+      totalJobs: finalJobs.length,
       analysis: {
         rolesIdentified: analysis.rolesIdentified,
         skills: analysis.skills,
