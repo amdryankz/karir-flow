@@ -132,8 +132,14 @@ export function AppNavbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {menuItems.map((item) => {
+              // Check if upload-offering should highlight Check Offering tab
+              const isUploadOfferingActive =
+                item.url === "/check-offering" &&
+                pathname === "/upload-offering";
               const isActive =
-                pathname === item.url || pathname.startsWith(item.url + "/");
+                pathname === item.url ||
+                pathname.startsWith(item.url + "/") ||
+                isUploadOfferingActive;
               return (
                 <Link
                   key={item.title}
@@ -291,9 +297,14 @@ export function AppNavbar() {
                   {/* Navigation Links */}
                   <div className="flex flex-col gap-1">
                     {menuItems.map((item) => {
+                      // Check if upload-offering should highlight Check Offering tab
+                      const isUploadOfferingActive =
+                        item.url === "/check-offering" &&
+                        pathname === "/upload-offering";
                       const isActive =
                         pathname === item.url ||
-                        pathname.startsWith(item.url + "/");
+                        pathname.startsWith(item.url + "/") ||
+                        isUploadOfferingActive;
                       return (
                         <Link
                           key={item.title}

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/lib/authClient";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +16,7 @@ import {
   Building2,
   CalendarDays,
   Wifi,
+  ArrowLeft,
 } from "lucide-react";
 
 type JobItem = {
@@ -31,11 +34,32 @@ type JobItem = {
 
 export default function JobRecommendationPage() {
   const { data } = useSession();
+  const router = useRouter();
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<null | { code?: number; message: string }>(
     null
   );
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
+  };
 
   const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
   const cacheKey = useMemo(() => {
@@ -184,16 +208,27 @@ export default function JobRecommendationPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <PageHeader
-          title="Job Recommendations"
-          description="Analyzing your CV and finding roles tailored to you."
-        />
-        <div className="mt-6 flex items-center gap-3 rounded-lg border bg-card p-6">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            This may take 30–60 seconds.
-          </p>
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#001e00] dark:text-zinc-100">
+              Job Recommendations
+            </h1>
+            <p className="text-[#5e6d55] dark:text-zinc-400">
+              Analyzing your CV and finding roles tailored to you.
+            </p>
+          </div>
+
+          <Card className="border-none shadow-md rounded-2xl">
+            <CardContent className="p-8">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-[#14a800]" />
+                <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
+                  This may take 30–60 seconds.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -202,73 +237,103 @@ export default function JobRecommendationPage() {
   if (error) {
     const code = error.code;
     return (
-      <div className="p-6">
-        <PageHeader
-          title="Job Recommendations"
-          description={""}
-        />
-        <Card className="max-w-xl">
-          <CardContent className="p-6 space-y-3">
-            <p className="text-sm text-destructive font-medium">
-              {error.message || "Something went wrong"}
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#001e00] dark:text-zinc-100">
+              Job Recommendations
+            </h1>
+            <p className="text-[#5e6d55] dark:text-zinc-400">
+              Analyzing your CV and finding roles tailored to you.
             </p>
-            {code === 401 && (
-              <p className="text-sm text-muted-foreground">
-                Please login to continue.
+          </div>
+
+          <Card className="border-none shadow-md rounded-2xl max-w-2xl">
+            <CardContent className="p-8 space-y-4">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                {error.message || "Something went wrong"}
               </p>
-            )}
-            {(code === 400 || code === 404) && (
-              <p className="text-sm text-muted-foreground">
-                Please upload a valid CV to get tailored job recommendations.
-              </p>
-            )}
-            {code === 500 && (
-              <p className="text-sm text-muted-foreground">
-                Server error. Please try again later.
-              </p>
-            )}
-            <div className="flex gap-2">
               {code === 401 && (
-                <Button
-                  onClick={() => (window.location.href = "/login")}
-                  size="sm"
-                >
-                  Login
-                </Button>
+                <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
+                  Please login to continue.
+                </p>
               )}
               {(code === 400 || code === 404) && (
-                <Button
-                  onClick={() => (window.location.href = "/upload-cv")}
-                  variant="secondary"
-                  size="sm"
-                >
-                  Upload CV
-                </Button>
+                <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
+                  Please upload a valid CV to get tailored job recommendations.
+                </p>
               )}
-            </div>
-          </CardContent>
-        </Card>
+              {code === 500 && (
+                <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
+                  Server error. Please try again later.
+                </p>
+              )}
+              <div className="flex gap-2">
+                {code === 401 && (
+                  <Button
+                    onClick={() => (window.location.href = "/login")}
+                    size="sm"
+                    className="rounded-full bg-[#14a800] hover:bg-[#0f7d00] text-white"
+                  >
+                    Login
+                  </Button>
+                )}
+                {(code === 400 || code === 404) && (
+                  <Button
+                    onClick={() => (window.location.href = "/upload-cv")}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full border-[#14a800] text-[#14a800] hover:bg-[#14a800] hover:text-white"
+                  >
+                    Upload CV
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <PageHeader
-        title="Job Recommendations"
-        description="Roles matched to your skills and preferences."
-      />
-      {jobs.length === 0 ? (
-        <div className="mt-6 rounded-lg border bg-card p-6 text-sm text-muted-foreground">
-          No jobs found for your profile yet. Try again later.
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/dashboard")}
+          className="group transition-all hover:pl-2 text-[#5e6d55] dark:text-zinc-400 hover:text-[#14a800] dark:hover:text-[#14a800]"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Dashboard
+        </Button>
+
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-[#001e00] dark:text-zinc-100">
+            Job Recommendations
+          </h1>
+          <p className="text-[#5e6d55] dark:text-zinc-400">
+            Roles matched to your skills and preferences.
+          </p>
         </div>
-      ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} formatPosted={formatPosted} />
-          ))}
-        </div>
-      )}
+
+        {jobs.length === 0 ? (
+          <Card className="border-none shadow-md rounded-2xl">
+            <CardContent className="p-8 text-center">
+              <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
+                No jobs found for your profile yet. Try again later.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} formatPosted={formatPosted} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -300,39 +365,41 @@ function JobCard({
     <div
       onClick={onClick}
       className={cn(
-        "cursor-pointer rounded-xl border bg-card p-4 shadow-sm transition-all",
-        "hover:shadow-md hover:-translate-y-0.5"
+        "cursor-pointer rounded-2xl border-none shadow-md bg-white dark:bg-zinc-900 p-6 transition-all",
+        "hover:shadow-lg hover:-translate-y-1"
       )}
     >
       <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <h3 className="text-base font-semibold text-foreground">
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-[#001e00] dark:text-zinc-100 leading-tight">
             {job.title}
           </h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-[#5e6d55] dark:text-zinc-400">
             <Building2 className="h-4 w-4" />
             <span>{job.company}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-[#5e6d55] dark:text-zinc-400">
             <MapPin className="h-4 w-4" />
             <span>{job.location || "—"}</span>
             {job.isRemote && (
               <Badge
                 variant="outline"
-                className="ml-2 inline-flex items-center gap-1"
+                className="ml-2 inline-flex items-center gap-1 border-[#14a800] text-[#14a800] bg-[#14a800]/5"
               >
                 <Wifi className="h-3 w-3" /> Remote
               </Badge>
             )}
           </div>
           {postedText && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs text-[#5e6d55] dark:text-zinc-400">
               <CalendarDays className="h-3 w-3" />
               <span>Posted {postedText}</span>
             </div>
           )}
         </div>
-        <ExternalLink className="h-5 w-5 text-muted-foreground" />
+        <div className="p-2 rounded-xl bg-[#14a800]/10">
+          <ExternalLink className="h-5 w-5 text-[#14a800]" />
+        </div>
       </div>
     </div>
   );

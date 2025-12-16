@@ -144,18 +144,32 @@ export default function OfferDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Offer Detail</h1>
-          <Button variant="outline" onClick={goBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goBack}
+            className="group transition-all hover:pl-2 text-[#5e6d55] dark:text-zinc-400 hover:text-[#14a800] dark:hover:text-[#14a800]"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Check Offering
           </Button>
-        </div>
-        <div className="flex h-[200px] items-center justify-center rounded-md border bg-card">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <AlertCircle className="h-5 w-5 animate-pulse" />
-            <span>Loading analysis…</span>
+
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#001e00] dark:text-zinc-100">
+              Offer Detail
+            </h1>
           </div>
+
+          <Card className="border-none shadow-md rounded-2xl">
+            <CardContent className="flex items-center justify-center h-64">
+              <div className="flex items-center gap-3 text-[#5e6d55] dark:text-zinc-400">
+                <AlertCircle className="h-5 w-5 animate-pulse text-[#14a800]" />
+                <span>Loading analysis…</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -163,46 +177,79 @@ export default function OfferDetailPage() {
 
   if (error) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Offer Detail</h1>
-          <Button variant="outline" onClick={goBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goBack}
+            className="group transition-all hover:pl-2 text-[#5e6d55] dark:text-zinc-400 hover:text-[#14a800] dark:hover:text-[#14a800]"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Check Offering
           </Button>
+
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#001e00] dark:text-zinc-100">
+              Offer Detail
+            </h1>
+          </div>
+
+          <Card className="border-none shadow-md rounded-2xl bg-red-50/50 dark:bg-red-950/20">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+              <div className="rounded-full bg-red-100 dark:bg-red-900/30 p-3">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-red-700 dark:text-red-400 font-semibold">
+                  Error loading detail
+                </p>
+                <p className="text-sm text-red-600/80 dark:text-red-400/80">
+                  {error}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="rounded-full border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                onClick={() => window.location.reload()}
+              >
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-        <Card className="border-destructive/50 bg-destructive/10">
-          <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-            <p className="text-destructive font-medium mb-2">
-              Error loading detail
-            </p>
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => window.location.reload()}
-            >
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   if (!detail) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Offer Detail</h1>
-          <Button variant="outline" onClick={goBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goBack}
+            className="group transition-all hover:pl-2 text-[#5e6d55] dark:text-zinc-400 hover:text-[#14a800] dark:hover:text-[#14a800]"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Check Offering
           </Button>
+
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#001e00] dark:text-zinc-100">
+              Offer Detail
+            </h1>
+          </div>
+
+          <Card className="border-none shadow-md rounded-2xl">
+            <CardContent className="py-12 text-center">
+              <p className="text-sm text-[#5e6d55] dark:text-zinc-400">
+                No analysis available for this offer letter.
+              </p>
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            No analysis available for this offer letter.
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -211,203 +258,336 @@ export default function OfferDetailPage() {
   const flags = detail.redFlags || [];
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">{detail.title}</h1>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <Badge variant="outline" className="capitalize">
-              {detail.status}
-            </Badge>
-            {detail.createdAt && (
-              <span className="inline-flex items-center gap-2">
-                <CalendarDays className="h-4 w-4" />{" "}
-                {format(new Date(detail.createdAt), "MMM d, yyyy")}
-              </span>
-            )}
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={goBack}
+          className="group transition-all hover:pl-2 text-[#5e6d55] dark:text-zinc-400 hover:text-[#14a800] dark:hover:text-[#14a800]"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Check Offering
+        </Button>
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#001e00] dark:text-zinc-100">
+              {detail.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-[#5e6d55] dark:text-zinc-400">
+              <Badge
+                variant="outline"
+                className="capitalize border-[#e4ebe4] dark:border-zinc-700"
+              >
+                {detail.status}
+              </Badge>
+              {detail.createdAt && (
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4" />
+                  {format(new Date(detail.createdAt), "MMM d, yyyy")}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={goBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <Button onClick={openPdf}>
+          <Button
+            onClick={openPdf}
+            className="rounded-full bg-[#14a800] hover:bg-[#0f7d00] text-white"
+          >
             <FileText className="mr-2 h-4 w-4" /> View PDF
           </Button>
         </div>
-      </div>
 
-      {/* Summary / Risk */}
-      <Card className="overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div>
-            <CardTitle>Offer Letter Analysis Summary</CardTitle>
-            <CardDescription>
-              AI-assisted evaluation of your offer terms
+        {/* Summary / Risk */}
+        <Card className="border-none shadow-md rounded-2xl">
+          <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-[#e4ebe4] dark:border-zinc-800 pb-6">
+            <div>
+              <CardTitle className="text-xl font-bold text-[#001e00] dark:text-zinc-100">
+                Offer Letter Analysis Summary
+              </CardTitle>
+              <CardDescription className="text-[#5e6d55] dark:text-zinc-400">
+                AI-assisted evaluation of your offer terms
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex h-3 w-3 rounded-full ${riskColor}`}
+              />
+              <Badge
+                variant="outline"
+                className="border-[#e4ebe4] dark:border-zinc-700"
+              >
+                Risk: {riskLevel}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8">
+            <p className="text-sm text-[#5e6d55] dark:text-zinc-400 leading-relaxed">
+              {a?.negotiationPhrases ||
+                a?.competitivenessScore ||
+                a?.employerFavorability ||
+                "This summary highlights potential risks, strengths, and negotiation points based on your offer letter."}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Key Insights */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Card className="border-none shadow-md rounded-2xl">
+            <CardHeader className="border-b border-[#e4ebe4] dark:border-zinc-800 pb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-[#14a800]/10">
+                  <Building2 className="h-5 w-5 text-[#14a800]" />
+                </div>
+                <CardTitle className="text-lg font-bold text-[#001e00] dark:text-zinc-100">
+                  Company Legitimacy
+                </CardTitle>
+              </div>
+              <CardDescription className="text-[#5e6d55] dark:text-zinc-400">
+                Basic credibility indicators
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 text-sm text-[#5e6d55] dark:text-zinc-400 space-y-2">
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Employment Type:
+                </span>{" "}
+                {a?.employmentType || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Work Location:
+                </span>{" "}
+                {a?.workLocation || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Start Date:
+                </span>{" "}
+                {a?.startDate || "—"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-md rounded-2xl">
+            <CardHeader className="border-b border-[#e4ebe4] dark:border-zinc-800 pb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-[#14a800]/10">
+                  <CheckCircle2 className="h-5 w-5 text-[#14a800]" />
+                </div>
+                <CardTitle className="text-lg font-bold text-[#001e00] dark:text-zinc-100">
+                  Salary & Benefits
+                </CardTitle>
+              </div>
+              <CardDescription className="text-[#5e6d55] dark:text-zinc-400">
+                Compensation overview
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 text-sm text-[#5e6d55] dark:text-zinc-400 space-y-2">
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Base Salary:
+                </span>{" "}
+                {a?.baseSalaryAmount || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Allowances:
+                </span>{" "}
+                {a?.allowances || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Total Compensation:
+                </span>{" "}
+                {a?.totalCompensation || "—"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-md rounded-2xl">
+            <CardHeader className="border-b border-[#e4ebe4] dark:border-zinc-800 pb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-[#14a800]/10">
+                  <CheckCircle2 className="h-5 w-5 text-[#14a800]" />
+                </div>
+                <CardTitle className="text-lg font-bold text-[#001e00] dark:text-zinc-100">
+                  Contract Clarity
+                </CardTitle>
+              </div>
+              <CardDescription className="text-[#5e6d55] dark:text-zinc-400">
+                Clarity & terms
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 text-sm text-[#5e6d55] dark:text-zinc-400 space-y-2">
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Probation Terms:
+                </span>{" "}
+                {a?.probationTerms || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Leave Policy:
+                </span>{" "}
+                {a?.leavePolicy || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Clarity Score:
+                </span>{" "}
+                {a?.clarityScore ?? "—"}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Red Flags */}
+        <Card className="border-none shadow-md rounded-2xl bg-red-50/50 dark:bg-red-950/20">
+          <CardHeader className="border-b border-red-200 dark:border-red-900/30 pb-4">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30">
+                <TriangleAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <CardTitle className="text-lg font-bold text-red-900 dark:text-red-300">
+                Red Flags
+              </CardTitle>
+            </div>
+            <CardDescription className="text-red-600/80 dark:text-red-400/80">
+              Potential risks detected in your offer
             </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex h-3 w-3 rounded-full ${riskColor}`} />
-            <Badge variant="outline">Risk: {riskLevel}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            {a?.negotiationPhrases ||
-              a?.competitivenessScore ||
-              a?.employerFavorability ||
-              "This summary highlights potential risks, strengths, and negotiation points based on your offer letter."}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Key Insights */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              <CardTitle>Company Legitimacy</CardTitle>
-            </div>
-            <CardDescription>Basic credibility indicators</CardDescription>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-1">
-            <p>Employment Type: {a?.employmentType || "—"}</p>
-            <p>Work Location: {a?.workLocation || "—"}</p>
-            <p>Start Date: {a?.startDate || "—"}</p>
+          <CardContent className="p-6">
+            {flags.length === 0 ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                  No red flags detected. Your offer looks good.
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {flags.map((f, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <span
+                      className={`mt-1 inline-block h-2 w-2 rounded-full shrink-0 ${
+                        (f.severity || "").toLowerCase() === "high"
+                          ? "bg-red-500"
+                          : (f.severity || "").toLowerCase() === "medium"
+                          ? "bg-yellow-500"
+                          : "bg-orange-400"
+                      }`}
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-red-900 dark:text-red-300">
+                        {f.type}
+                      </p>
+                      <p className="text-xs text-red-700/80 dark:text-red-400/80 mt-1">
+                        {f.description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary" />
-              <CardTitle>Salary & Benefits</CardTitle>
+        {/* Detailed Analysis (Collapsible) */}
+        <div className="space-y-3">
+          <details className="group rounded-2xl border-none shadow-md bg-white dark:bg-zinc-900 p-6">
+            <summary className="cursor-pointer list-none font-semibold flex items-center justify-between text-[#001e00] dark:text-zinc-100">
+              Salary Analysis
+              <span className="text-sm text-[#5e6d55] dark:text-zinc-400 group-open:hidden">
+                Show
+              </span>
+              <span className="text-sm text-[#5e6d55] dark:text-zinc-400 hidden group-open:inline">
+                Hide
+              </span>
+            </summary>
+            <div className="mt-4 pt-4 border-t border-[#e4ebe4] dark:border-zinc-800 text-sm text-[#5e6d55] dark:text-zinc-400 space-y-2">
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Base Salary:
+                </span>{" "}
+                {a?.baseSalaryAmount || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Bonus Policy:
+                </span>{" "}
+                {a?.bonusPolicy || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Equity:
+                </span>{" "}
+                {a?.equityValue || "—"}
+              </p>
             </div>
-            <CardDescription>Compensation overview</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-1">
-            <p>Base Salary: {a?.baseSalaryAmount || "—"}</p>
-            <p>Allowances: {a?.allowances || "—"}</p>
-            <p>Total Compensation: {a?.totalCompensation || "—"}</p>
-          </CardContent>
-        </Card>
+          </details>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-primary" />
-              <CardTitle>Contract Clarity</CardTitle>
+          <details className="group rounded-2xl border-none shadow-md bg-white dark:bg-zinc-900 p-6">
+            <summary className="cursor-pointer list-none font-semibold flex items-center justify-between text-[#001e00] dark:text-zinc-100">
+              Contract Terms
+              <span className="text-sm text-[#5e6d55] dark:text-zinc-400 group-open:hidden">
+                Show
+              </span>
+              <span className="text-sm text-[#5e6d55] dark:text-zinc-400 hidden group-open:inline">
+                Hide
+              </span>
+            </summary>
+            <div className="mt-4 pt-4 border-t border-[#e4ebe4] dark:border-zinc-800 text-sm text-[#5e6d55] dark:text-zinc-400 space-y-2">
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Working Hours:
+                </span>{" "}
+                {a?.workingHours || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Employment Type:
+                </span>{" "}
+                {a?.employmentType || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Probation Terms:
+                </span>{" "}
+                {a?.probationTerms || "—"}
+              </p>
             </div>
-            <CardDescription>Clarity & terms</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-1">
-            <p>Probation Terms: {a?.probationTerms || "—"}</p>
-            <p>Leave Policy: {a?.leavePolicy || "—"}</p>
-            <p>Clarity Score: {a?.clarityScore ?? "—"}</p>
-          </CardContent>
-        </Card>
-      </div>
+          </details>
 
-      {/* Red Flags */}
-      <Card className="border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-950/20">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <TriangleAlert className="h-5 w-5 text-red-500" />
-            <CardTitle>Red Flags</CardTitle>
-          </div>
-          <CardDescription>
-            Potential risks detected in your offer
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {flags.length === 0 ? (
-            <p className="text-sm text-green-600 dark:text-green-400">
-              No red flags detected. Your offer looks good.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {flags.map((f, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span
-                    className={`mt-1 inline-block h-2 w-2 rounded-full ${
-                      (f.severity || "").toLowerCase() === "high"
-                        ? "bg-red-500"
-                        : (f.severity || "").toLowerCase() === "medium"
-                        ? "bg-yellow-500"
-                        : "bg-orange-400"
-                    }`}
-                  />
-                  <div>
-                    <p className="text-sm font-medium">{f.type}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {f.description}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Detailed Analysis (Collapsible) */}
-      <div className="space-y-3">
-        <details className="group rounded-lg border bg-card p-4">
-          <summary className="cursor-pointer list-none font-medium flex items-center justify-between">
-            Salary Analysis
-            <span className="text-sm text-muted-foreground group-open:hidden">
-              Show
-            </span>
-            <span className="text-sm text-muted-foreground hidden group-open:inline">
-              Hide
-            </span>
-          </summary>
-          <div className="mt-3 text-sm text-muted-foreground space-y-1">
-            <p>Base Salary: {a?.baseSalaryAmount || "—"}</p>
-            <p>Bonus Policy: {a?.bonusPolicy || "—"}</p>
-            <p>Equity: {a?.equityValue || "—"}</p>
-          </div>
-        </details>
-
-        <details className="group rounded-lg border bg-card p-4">
-          <summary className="cursor-pointer list-none font-medium flex items-center justify-between">
-            Contract Terms
-            <span className="text-sm text-muted-foreground group-open:hidden">
-              Show
-            </span>
-            <span className="text-sm text-muted-foreground hidden group-open:inline">
-              Hide
-            </span>
-          </summary>
-          <div className="mt-3 text-sm text-muted-foreground space-y-1">
-            <p>Working Hours: {a?.workingHours || "—"}</p>
-            <p>Employment Type: {a?.employmentType || "—"}</p>
-            <p>Probation Terms: {a?.probationTerms || "—"}</p>
-          </div>
-        </details>
-
-        <details className="group rounded-lg border bg-card p-4">
-          <summary className="cursor-pointer list-none font-medium flex items-center justify-between">
-            Timeline
-            <span className="text-sm text-muted-foreground group-open:hidden">
-              Show
-            </span>
-            <span className="text-sm text-muted-foreground hidden group-open:inline">
-              Hide
-            </span>
-          </summary>
-          <div className="mt-3 text-sm text-muted-foreground space-y-1">
-            <p>Start Date: {a?.startDate || "—"}</p>
-            <p>
-              Analyzed At:{" "}
-              {a?.analyzedAt
-                ? format(new Date(a.analyzedAt), "MMM d, yyyy")
-                : "—"}
-            </p>
-          </div>
-        </details>
+          <details className="group rounded-2xl border-none shadow-md bg-white dark:bg-zinc-900 p-6">
+            <summary className="cursor-pointer list-none font-semibold flex items-center justify-between text-[#001e00] dark:text-zinc-100">
+              Timeline
+              <span className="text-sm text-[#5e6d55] dark:text-zinc-400 group-open:hidden">
+                Show
+              </span>
+              <span className="text-sm text-[#5e6d55] dark:text-zinc-400 hidden group-open:inline">
+                Hide
+              </span>
+            </summary>
+            <div className="mt-4 pt-4 border-t border-[#e4ebe4] dark:border-zinc-800 text-sm text-[#5e6d55] dark:text-zinc-400 space-y-2">
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Start Date:
+                </span>{" "}
+                {a?.startDate || "—"}
+              </p>
+              <p>
+                <span className="font-medium text-[#001e00] dark:text-zinc-100">
+                  Analyzed At:
+                </span>{" "}
+                {a?.analyzedAt
+                  ? format(new Date(a.analyzedAt), "MMM d, yyyy")
+                  : "—"}
+              </p>
+            </div>
+          </details>
+        </div>
       </div>
     </div>
   );
