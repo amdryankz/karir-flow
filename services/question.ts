@@ -51,6 +51,9 @@ export class QuestionService {
     Mix technical questions and behavioral questions.
     ${languageInstruction}
 
+    CONSTRAINTS:
+    - EACH question must be concise and NOT exceed 120 characters.
+
     OUTPUT FORMAT:
     Return ONLY a JSON array of strings. Example:
     ["Question 1", "Question 2", "Question 3"]
@@ -68,6 +71,7 @@ export class QuestionService {
     try {
       return JSON.parse(cleanedText);
     } catch (error) {
+      console.log(error);
       console.error('Failed to parse AI response:', cleanedText);
       throw new Error('AI response parsing failed. Please try again.');
     }
@@ -171,7 +175,7 @@ export class QuestionService {
       ]);
 
       const responseText = result.response.text();
-      
+
       // Clean response text - remove markdown code blocks if present
       const cleanedText = responseText
         .replace(/```json\s*/g, '')
@@ -185,7 +189,7 @@ export class QuestionService {
       } catch (parseError) {
         console.error('Failed to parse AI response:', cleanedText);
         console.error('Parse error:', parseError);
-        
+
         // Fallback response when AI fails
         parsed = {
           transcription: "Transcription unavailable",
@@ -203,8 +207,8 @@ export class QuestionService {
         transcription: parsed.transcription || "Transcription unavailable",
         feedback_content: parsed.feedback_content || "No feedback available",
         feedback_tone: parsed.feedback_tone || "No tone analysis available",
-        score: typeof parsed.score === "number" && parsed.score >= 1 && parsed.score <= 10 
-          ? parsed.score 
+        score: typeof parsed.score === "number" && parsed.score >= 1 && parsed.score <= 10
+          ? parsed.score
           : 5,
         speech_pace: parsed.speech_pace || "NORMAL",
         confidence_level: parsed.confidence_level || "MEDIUM",
@@ -214,7 +218,7 @@ export class QuestionService {
       return validatedResponse;
     } catch (error) {
       console.error('Error in generateFeedbackAnswerFromAI:', error);
-      
+
       // Return fallback response on any error
       return {
         transcription: "Transcription failed",
