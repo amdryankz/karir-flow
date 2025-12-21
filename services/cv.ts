@@ -1,4 +1,11 @@
 import { BadRequestError } from "@/utils/customError";
+if (typeof window === 'undefined') {
+  (global as any).DOMMatrix = class DOMMatrix {
+    constructor() { }
+    static fromFloat32Array() { return new DOMMatrix(); }
+    static fromFloat64Array() { return new DOMMatrix(); }
+  };
+}
 import { PDFParse } from "pdf-parse";
 import { uploadPdfBuffer, deletePdfFromStorage } from "@/lib/storage";
 import { CvModel, DocumentData, updateCvData } from "@/models/cv";
