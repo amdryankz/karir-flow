@@ -25,36 +25,37 @@ export async function proxy(req: NextRequest) {
     ];
 
     // Check if path matches protected patterns
-    const isProtected = protectedPaths.some(protectedPath => 
-      path === protectedPath || 
-      path.startsWith(protectedPath) || 
+    const isProtected = protectedPaths.some(protectedPath =>
+      path === protectedPath ||
+      path.startsWith(protectedPath) ||
       (path.startsWith("/api/interview") && path !== "/api/interview" && !path.includes("/api/interview/"))
     );
 
     if (path.startsWith("/api") && isProtected) {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("better-auth.session_data");
-        if (!token) throw new UnauthorizedError();
+      const cookieStore = await cookies();
+      const token = cookieStore.get("__Secure-better-auth.session_data") ||
+        cookieStore.get("better-auth.session_data");
+      if (!token) throw new UnauthorizedError();
 
-        const payload = jwt.verify(
-          token.value,
-          process.env.BETTER_AUTH_SECRET || ""
-        ) as ILoginInfo;
+      const payload = jwt.verify(
+        token.value,
+        process.env.BETTER_AUTH_SECRET || ""
+      ) as ILoginInfo;
 
-        const user = await prisma.user.findUnique({
-          where: {
-            id: payload.session.userId,
-          },
-        });
-        if (!user) throw new UnauthorizedError();
+      const user = await prisma.user.findUnique({
+        where: {
+          id: payload.session.userId,
+        },
+      });
+      if (!user) throw new UnauthorizedError();
 
-        const newHeader = new Headers(req.headers);
-        newHeader.set("x-user-id", user.id);
-        const response = NextResponse.next({
-          headers: newHeader,
-        });
+      const newHeader = new Headers(req.headers);
+      newHeader.set("x-user-id", user.id);
+      const response = NextResponse.next({
+        headers: newHeader,
+      });
 
-        return response;
+      return response;
     }
   } catch (err) {
     const { message, status } = errorHandler(err);
