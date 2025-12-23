@@ -1,12 +1,5 @@
 import { BadRequestError } from "@/utils/customError";
-if (typeof window === 'undefined') {
-  (global as any).DOMMatrix = class DOMMatrix {
-    constructor() { }
-    static fromFloat32Array() { return new DOMMatrix(); }
-    static fromFloat64Array() { return new DOMMatrix(); }
-  };
-}
-import { PDFParse } from "pdf-parse";
+import pdf from "pdf-parse";
 import { uploadPdfBuffer, deletePdfFromStorage } from "@/lib/storage";
 import { CvModel, DocumentData, updateCvData } from "@/models/cv";
 
@@ -23,18 +16,12 @@ export class CvService {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const parser = new PDFParse({
-      data: buffer,
-      worker: undefined,
-    });
-
-    const data = await parser.getText();
-    const info = await parser.getInfo({ parsePageInfo: true });
+    const data = await pdf(buffer);
 
     return {
       buffer,
       text: data.text,
-      pageCount: info.total,
+      pageCount: data.numpages,
     };
   }
 
