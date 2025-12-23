@@ -6,11 +6,11 @@ import {
   FileText,
   Home,
   LogOut,
+  Menu,
   MessageSquare,
   Moon,
   Sun,
   User,
-  Menu,
   X,
 } from "lucide-react";
 import { useTheme } from "next-themes";

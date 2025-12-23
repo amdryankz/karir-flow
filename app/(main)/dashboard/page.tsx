@@ -10,7 +10,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Users,
   Target,
@@ -20,19 +19,16 @@ import {
   Briefcase,
   FileCheck,
   FileText,
-  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
   const userName = session?.user?.name || "User";
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   // Animation variants
   const containerVariants = {
@@ -116,7 +112,7 @@ export default function DashboardPage() {
                 Dashboard Overview
               </h1>
               <p className="text-[#5e6d55] dark:text-zinc-400">
-                Welcome back, {userName}! Here's your career progress at a
+                Welcome back, {userName}! Here`s your career progress at a
                 glance.
               </p>
             </div>

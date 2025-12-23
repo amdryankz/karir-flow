@@ -16,10 +16,8 @@ import {
   Upload,
   FileText,
   CheckCircle,
-  Loader2,
-  X,
-  ArrowLeft,
   User as UserIcon,
+  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -148,14 +146,14 @@ export default function UserProfilePage() {
             pdfUrl: json.pdfUrl,
           };
           setCv(updated);
-        } catch (_) {}
+        } catch {}
         toast.success("CV updated successfully");
       } else {
         setUploadStatus("error");
         try {
           const response = JSON.parse(xhr.responseText);
           toast.error(response.message || "Update failed");
-        } catch (_) {
+        } catch {
           toast.error("Update failed");
         }
       }

@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   Mic,
   MicOff,
@@ -24,10 +23,10 @@ import {
   AlertCircle,
   Volume2,
   VolumeX,
-  Eye,
-  EyeOff,
   Minimize2,
   Maximize2,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VoiceVisualizer } from "@/components/voice-visualizer";
@@ -93,7 +92,7 @@ export default function InterviewSessionPage() {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
-  
+
   // Audio Visualization Refs
   const [audioVolume, setAudioVolume] = React.useState(0);
   const audioContextRef = React.useRef<AudioContext | null>(null);
@@ -109,9 +108,10 @@ export default function InterviewSessionPage() {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    
+
     // Cleanup previous audio context if any
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    if (animationFrameRef.current)
+      cancelAnimationFrame(animationFrameRef.current);
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
@@ -126,42 +126,45 @@ export default function InterviewSessionPage() {
       audioRef.current = audio;
 
       // Setup Audio Analysis for AI Voice
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContextClass();
       audioContextRef.current = audioContext;
-      
-      // Wait for audio to be ready to play
-      audio.addEventListener('canplay', () => {
-        try {
-            const source = audioContext.createMediaElementSource(audio);
-            const analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
-            analyser.connect(audioContext.destination); // Connect to speakers
-            analyserRef.current = analyser;
 
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            
-            const updateVolume = () => {
-                if (analyser && !audio.paused) {
-                    analyser.getByteFrequencyData(dataArray);
-                    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-                    setAudioVolume(Math.min(1, average / 100)); 
-                    animationFrameRef.current = requestAnimationFrame(updateVolume);
-                } else if (audio.paused) {
-                    setAudioVolume(0);
-                }
-            };
-            updateVolume();
+      // Wait for audio to be ready to play
+      audio.addEventListener("canplay", () => {
+        try {
+          const source = audioContext.createMediaElementSource(audio);
+          const analyser = audioContext.createAnalyser();
+          analyser.fftSize = 256;
+          source.connect(analyser);
+          analyser.connect(audioContext.destination); // Connect to speakers
+          analyserRef.current = analyser;
+
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+          const updateVolume = () => {
+            if (analyser && !audio.paused) {
+              analyser.getByteFrequencyData(dataArray);
+              const average =
+                dataArray.reduce((a, b) => a + b) / dataArray.length;
+              setAudioVolume(Math.min(1, average / 100));
+              animationFrameRef.current = requestAnimationFrame(updateVolume);
+            } else if (audio.paused) {
+              setAudioVolume(0);
+            }
+          };
+          updateVolume();
         } catch (e) {
-            console.error("Error setting up audio visualization:", e);
-            // Fallback: just play audio without visualization if CORS or other issue
+          console.error("Error setting up audio visualization:", e);
+          // Fallback: just play audio without visualization if CORS or other issue
         }
       });
 
       audio.onended = () => {
         setIsSpeaking(false);
-        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        if (animationFrameRef.current)
+          cancelAnimationFrame(animationFrameRef.current);
         setAudioVolume(0);
       };
 
@@ -303,9 +306,10 @@ export default function InterviewSessionPage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
-      
+
       // Setup Audio Analysis
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContextClass();
       audioContextRef.current = audioContext;
       const source = audioContext.createMediaStreamSource(stream);
@@ -313,17 +317,17 @@ export default function InterviewSessionPage() {
       analyser.fftSize = 256;
       source.connect(analyser);
       analyserRef.current = analyser;
-      
+
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      
+
       const updateVolume = () => {
         if (analyser) {
-            analyser.getByteFrequencyData(dataArray);
-            const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-            // Normalize: average is 0-255. We want 0-1.
-            // Speech usually isn't max volume, so we can boost it a bit.
-            setAudioVolume(Math.min(1, average / 100)); 
-            animationFrameRef.current = requestAnimationFrame(updateVolume);
+          analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+          // Normalize: average is 0-255. We want 0-1.
+          // Speech usually isn't max volume, so we can boost it a bit.
+          setAudioVolume(Math.min(1, average / 100));
+          animationFrameRef.current = requestAnimationFrame(updateVolume);
         }
       };
       updateVolume();
@@ -351,9 +355,10 @@ export default function InterviewSessionPage() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
+
       // Cleanup Audio Context
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
       if (audioContextRef.current) {
         audioContextRef.current.close();
         audioContextRef.current = null;
@@ -474,7 +479,7 @@ export default function InterviewSessionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f2f7f2] to-white dark:from-zinc-950 dark:to-zinc-900">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#f2f7f2] to-white dark:from-zinc-950 dark:to-zinc-900">
         <div className="flex flex-col items-center gap-6">
           <div className="relative">
             <div className="h-20 w-20 rounded-full bg-[#14a800]/10 animate-pulse" />
@@ -563,7 +568,7 @@ export default function InterviewSessionPage() {
             <Button
               className={cn(
                 "flex-1 h-16 text-base font-semibold rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95",
-                "bg-gradient-to-r from-[#14a800] to-[#0f7d00] hover:from-[#0f7d00] hover:to-[#0a5c00] text-white shadow-green-200 dark:shadow-green-900/50",
+                "bg-linear-to-r from-[#14a800] to-[#0f7d00] hover:from-[#0f7d00] hover:to-[#0a5c00] text-white shadow-green-200 dark:shadow-green-900/50",
                 isUploading && "opacity-75 cursor-not-allowed"
               )}
               onClick={handleRecordToggle}
@@ -604,7 +609,7 @@ export default function InterviewSessionPage() {
               onClick={() => setIsCardMinimized(false)}
             >
               <div className="bg-white dark:bg-zinc-900 border-2 border-[#14a800]/30 dark:border-[#14a800]/40 shadow-2xl rounded-2xl p-4 flex items-center gap-3 hover:scale-105 hover:border-[#14a800] transition-all">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#14a800]/20 to-[#14a800]/10 dark:from-[#14a800]/30 dark:to-[#14a800]/20 flex items-center justify-center text-[#14a800]">
+                <div className="h-12 w-12 rounded-full bg-linear-to-br from-[#14a800]/20 to-[#14a800]/10 dark:from-[#14a800]/30 dark:to-[#14a800]/20 flex items-center justify-center text-[#14a800]">
                   <Maximize2 className="h-6 w-6" />
                 </div>
                 <div className="flex flex-col">
@@ -623,10 +628,10 @@ export default function InterviewSessionPage() {
         {/* Question & Controls Card */}
         {!isCardMinimized && (
           <Card className="bg-white dark:bg-zinc-900 border-none shadow-lg rounded-3xl flex flex-col order-1 lg:order-2 h-auto lg:h-full min-w-0 overflow-hidden">
-            <CardHeader className="border-b border-[#e4ebe4] dark:border-zinc-800 pb-6 bg-gradient-to-br from-[#f9f9f9] to-white dark:from-zinc-900 dark:to-zinc-900/50">
+            <CardHeader className="border-b border-[#e4ebe4] dark:border-zinc-800 pb-6 bg-linear-to-br from-[#f9f9f9] to-white dark:from-zinc-900 dark:to-zinc-900/50">
               <CardTitle className="flex items-center justify-between gap-3 text-xl font-bold text-[#001e00] dark:text-zinc-100">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#14a800] to-[#0f7d00] flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  <div className="h-10 w-10 rounded-xl bg-linear-to-br from-[#14a800] to-[#0f7d00] flex items-center justify-center text-white font-bold text-lg shadow-lg">
                     {currentQuestionIndex + 1}
                   </div>
                   <span className="truncate">
@@ -700,27 +705,27 @@ export default function InterviewSessionPage() {
                   </div>
                 </div>
                 {isQuestionVisible ? (
-                  <div className="bg-gradient-to-br from-[#f9f9f9] to-white dark:from-zinc-800 dark:to-zinc-800/50 rounded-2xl p-6 border border-[#e4ebe4] dark:border-zinc-700">
+                  <div className="bg-linear-to-br from-[#f9f9f9] to-white dark:from-zinc-800 dark:to-zinc-800/50 rounded-2xl p-6 border border-[#e4ebe4] dark:border-zinc-700">
                     <p className="text-xl font-semibold text-[#001e00] dark:text-zinc-100 leading-relaxed">
                       {currentQuestion?.text || "Question not found"}
                     </p>
                   </div>
                 ) : (
-                  <div className="h-28 flex items-center justify-center text-[#5e6d55] dark:text-zinc-500 italic bg-gradient-to-br from-[#f9f9f9] to-white dark:from-zinc-800 dark:to-zinc-800/50 rounded-2xl border border-dashed border-[#e4ebe4] dark:border-zinc-700">
+                  <div className="h-28 flex items-center justify-center text-[#5e6d55] dark:text-zinc-500 italic bg-linear-to-br from-[#f9f9f9] to-white dark:from-zinc-800 dark:to-zinc-800/50 rounded-2xl border border-dashed border-[#e4ebe4] dark:border-zinc-700">
                     Question hidden. Listen to the audio.
                   </div>
                 )}
               </div>
 
               {isUploading && (
-                <div className="flex items-center justify-center gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-[#14a800]/10 to-[#0f7d00]/10 border border-[#14a800]/20 text-sm font-medium text-[#14a800] dark:text-[#14a800]">
+                <div className="flex items-center justify-center gap-3 px-4 py-3 rounded-2xl bg-linear-to-r from-[#14a800]/10 to-[#0f7d00]/10 border border-[#14a800]/20 text-sm font-medium text-[#14a800] dark:text-[#14a800]">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span>Analyzing your answer with AI...</span>
                 </div>
               )}
 
               {error && (
-                <div className="flex items-center gap-3 rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-50/50 p-4 text-sm font-medium text-red-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-400 shadow-sm">
+                <div className="flex items-center gap-3 rounded-2xl border-2 border-red-200 bg-linear-to-br from-red-50 to-red-50/50 p-4 text-sm font-medium text-red-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-400 shadow-sm">
                   <AlertCircle className="h-5 w-5 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -728,7 +733,7 @@ export default function InterviewSessionPage() {
 
               {answers.length > 0 && (
                 <div className="space-y-4 overflow-hidden flex flex-col max-h-[220px]">
-                  <div className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-gradient-to-r from-[#14a800]/10 to-[#0f7d00]/10 border border-[#14a800]/20 text-sm font-semibold text-[#14a800] dark:text-[#14a800] w-fit">
+                  <div className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-linear-to-r from-[#14a800]/10 to-[#0f7d00]/10 border border-[#14a800]/20 text-sm font-semibold text-[#14a800] dark:text-[#14a800] w-fit">
                     <CheckCircle2 className="h-4 w-4" />
                     <span>
                       {answers.length} Answer{answers.length > 1 ? "s" : ""}{" "}
@@ -739,7 +744,7 @@ export default function InterviewSessionPage() {
                     {answers.map((ans) => (
                       <div
                         key={ans.questionId}
-                        className="rounded-2xl border border-[#e4ebe4] bg-gradient-to-br from-[#f9f9f9] to-white dark:from-zinc-800 dark:to-zinc-800/50 p-4 text-sm space-y-2 dark:border-zinc-700 hover:shadow-md transition-shadow"
+                        className="rounded-2xl border border-[#e4ebe4] bg-linear-to-br from-[#f9f9f9] to-white dark:from-zinc-800 dark:to-zinc-800/50 p-4 text-sm space-y-2 dark:border-zinc-700 hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-semibold text-[#001e00] dark:text-zinc-300 truncate max-w-[65%]">

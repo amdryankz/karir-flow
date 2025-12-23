@@ -12,10 +12,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, RotateCcw, Loader2, ArrowLeft, Play, Pause } from "lucide-react";
+import {
+  CheckCircle2,
+  RotateCcw,
+  ArrowLeft,
+  Play,
+  Pause,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
-import { Suspense } from "react";
 
 type Answer = {
   id: string;
@@ -158,16 +164,23 @@ function InterviewResultContent() {
   };
 
   const calculateAverageScore = () => {
-    if (!interview?.questionSet?.questions || interview.questionSet.questions.length === 0) return 0;
-    
+    if (
+      !interview?.questionSet?.questions ||
+      interview.questionSet.questions.length === 0
+    )
+      return 0;
+
     const totalQuestions = interview.questionSet.questions.length;
-    const totalScore = (interview.answers || []).reduce((sum, a) => sum + (a.score || 0), 0);
-    
+    const totalScore = (interview.answers || []).reduce(
+      (sum, a) => sum + (a.score || 0),
+      0
+    );
+
     // Calculate average based on TOTAL questions
     // Each answer is 1-10. Max total score is totalQuestions * 10.
     // We want 0-100 scale.
     // Formula: (totalScore / (totalQuestions * 10)) * 100 = (totalScore / totalQuestions) * 10
-    
+
     return Math.round((totalScore / totalQuestions) * 10);
   };
 
@@ -368,7 +381,9 @@ function InterviewResultContent() {
                           <div className="text-sm font-medium text-[#5e6d55] dark:text-zinc-400 uppercase tracking-wide">
                             Your Answer
                           </div>
-                          {answer.audioUrl && <AudioPlayer audioUrl={answer.audioUrl} />}
+                          {answer.audioUrl && (
+                            <AudioPlayer audioUrl={answer.audioUrl} />
+                          )}
                         </div>
                         <p className="text-base text-[#001e00] dark:text-zinc-200 leading-relaxed bg-[#f9f9f9] dark:bg-zinc-800/50 p-4 rounded-xl border border-[#e4ebe4] dark:border-zinc-800">
                           {answer.transcription ||
@@ -461,9 +476,7 @@ function InterviewResultContent() {
                 interview.id
               }&questionSetId=${
                 interview.questionSet.id
-              }&title=${encodeURIComponent(
-                interview.title
-              )}`}
+              }&title=${encodeURIComponent(interview.title)}`}
             >
               <RotateCcw className="mr-2 h-4 w-4" />
               Practice Again
@@ -477,7 +490,7 @@ function InterviewResultContent() {
 
 export default function InterviewResultPage() {
   return (
-    <Suspense
+    <React.Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#14a800]" />
@@ -485,6 +498,6 @@ export default function InterviewResultPage() {
       }
     >
       <InterviewResultContent />
-    </Suspense>
+    </React.Suspense>
   );
 }

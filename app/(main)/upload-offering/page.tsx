@@ -20,8 +20,8 @@ import {
   X,
   CheckCircle,
   Loader2,
-  ArrowLeft,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -104,7 +104,7 @@ export default function UploadOfferingPage() {
             router.push(`/check-offering/${id}`);
             return;
           }
-        } catch (_) {
+        } catch {
           // fall through to default behavior
         }
       } else {

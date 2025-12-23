@@ -32,7 +32,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Sparkles, Loader2, Globe, Hash } from "lucide-react";
-import { Suspense } from "react";
 
 function StartInterviewPageContent() {
   const router = useRouter();
@@ -170,8 +169,8 @@ function StartInterviewPageContent() {
           }
           throw new Error(
             body?.message ||
-            body?.error || 
-            `Server Error (${generateRes.status}): Failed to generate interview questions.`
+              body?.error ||
+              `Server Error (${generateRes.status}): Failed to generate interview questions.`
           );
         }
 
@@ -472,7 +471,7 @@ function StartInterviewPageContent() {
 
 export default function StartInterviewPage() {
   return (
-    <Suspense
+    <React.Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-[#f2f7f2] dark:bg-zinc-950">
           <Loader2 className="h-8 w-8 animate-spin text-[#14a800]" />
@@ -480,6 +479,6 @@ export default function StartInterviewPage() {
       }
     >
       <StartInterviewPageContent />
-    </Suspense>
+    </React.Suspense>
   );
 }

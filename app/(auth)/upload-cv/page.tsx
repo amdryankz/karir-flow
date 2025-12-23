@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, X, CheckCircle, Loader2 } from "lucide-react";
+import { Upload, FileText, X, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +36,7 @@ export default function UploadCvPage() {
         if (!hasCv && !cancelled) {
           toast.error("Please Upload CV First");
         }
-      } catch (_) {
+      } catch {
         if (!cancelled) toast.error("Please Upload CV First");
       }
     })();
@@ -61,44 +61,7 @@ export default function UploadCvPage() {
     setIsDragging(false);
   }, []);
 
-  const validateAndSetFile = (selectedFile: File) => {
-    if (selectedFile.type !== "application/pdf") {
-      toast.error("Only PDF files are allowed");
-      return;
-    }
-    // Max file size: 10MB
-    const MAX_SIZE_BYTES = 10 * 1024 * 1024;
-    if (selectedFile.size > MAX_SIZE_BYTES) {
-      toast.error("File must be under 10MB");
-      return;
-    }
-    setFile(selectedFile);
-    uploadFile(selectedFile);
-  };
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-
-      if (status === "uploading" || status === "success") return;
-
-      const droppedFiles = e.dataTransfer.files;
-      if (droppedFiles && droppedFiles.length > 0) {
-        validateAndSetFile(droppedFiles[0]);
-      }
-    },
-    [status]
-  );
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      validateAndSetFile(e.target.files[0]);
-    }
-  };
-
-  const uploadFile = (fileToUpload: File) => {
+  const uploadFile = useCallback((fileToUpload: File) => {
     setStatus("uploading");
     setProgress(0);
 
@@ -126,7 +89,7 @@ export default function UploadCvPage() {
         try {
           const response = JSON.parse(xhr.responseText);
           toast.error(response.message || "Upload failed");
-        } catch (e) {
+        } catch {
           toast.error("Upload failed");
         }
       }
@@ -143,6 +106,46 @@ export default function UploadCvPage() {
     // Based on previous context, better-auth is used, which likely uses cookies.
 
     xhr.send(formData);
+  }, []);
+
+  const validateAndSetFile = useCallback(
+    (selectedFile: File) => {
+      if (selectedFile.type !== "application/pdf") {
+        toast.error("Only PDF files are allowed");
+        return;
+      }
+      // Max file size: 10MB
+      const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+      if (selectedFile.size > MAX_SIZE_BYTES) {
+        toast.error("File must be under 10MB");
+        return;
+      }
+      setFile(selectedFile);
+      uploadFile(selectedFile);
+    },
+    [uploadFile]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      if (status === "uploading" || status === "success") return;
+
+      const droppedFiles = e.dataTransfer.files;
+      if (droppedFiles && droppedFiles.length > 0) {
+        validateAndSetFile(droppedFiles[0]);
+      }
+    },
+    [status, validateAndSetFile]
+  );
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      validateAndSetFile(e.target.files[0]);
+    }
   };
 
   const handleReset = () => {

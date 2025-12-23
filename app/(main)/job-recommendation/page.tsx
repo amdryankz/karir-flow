@@ -3,12 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/lib/authClient";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { PageHeader } from "@/components/page-header";
 import {
   ExternalLink,
   Loader2,
@@ -41,26 +39,6 @@ export default function JobRecommendationPage() {
     null
   );
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
-
   const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
   const cacheKey = useMemo(() => {
     const uid = data?.user?.id || "anonymous";
@@ -74,7 +52,7 @@ export default function JobRecommendationPage() {
     try {
       const raw = localStorage.getItem(cacheKey);
       return raw ? JSON.parse(raw) : null;
-    } catch (_) {
+    } catch {
       return null;
     }
   };
@@ -84,7 +62,7 @@ export default function JobRecommendationPage() {
         cacheKey,
         JSON.stringify({ jobs: items, ts: Date.now() })
       );
-    } catch (_) {
+    } catch {
       // ignore quota errors
     }
   };
@@ -343,7 +321,7 @@ async function safeMessage(res: Response): Promise<string> {
     const text = await res.text();
     const json = JSON.parse(text);
     return json?.message || json?.error || res.statusText;
-  } catch (_) {
+  } catch {
     return res.statusText;
   }
 }

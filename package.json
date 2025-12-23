@@ -1,6 +1,6 @@
 {
-  "name": "karir-flow",
-  "version": "0.1.0",
+  "name": "optima",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -24,7 +24,6 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
-    "@radix-ui/react-tooltip": "^1.2.8",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.15.6",
     "axios": "^1.13.2",
@@ -34,7 +33,6 @@
     "cloudinary": "^2.8.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "dotenv": "^17.2.3",
     "framer-motion": "^11.0.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.556.0",

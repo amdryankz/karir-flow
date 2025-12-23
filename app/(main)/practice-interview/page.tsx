@@ -23,8 +23,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, RotateCcw, FileText, Sparkles, Calendar } from "lucide-react";
-import Link from "next/link";
+import {
+  Eye,
+  RotateCcw,
+  FileText,
+  Sparkles,
+  Calendar,
+  Link,
+} from "lucide-react";
 
 type InterviewSession = {
   id: string;
@@ -122,7 +128,7 @@ export default function PracticeInterviewPage() {
     if (answers.length === 0) {
       return "Not Started";
     }
-    
+
     if (totalQuestions === 0) return "Not Started";
 
     // Hitung average score dari answers (score backend dalam skala 1-10)
@@ -130,7 +136,7 @@ export default function PracticeInterviewPage() {
       (sum, answer) => sum + (answer.score || 0),
       0
     );
-    
+
     // Calculate average based on TOTAL questions
     const avgScore = totalScore / totalQuestions; // Scale 0-10
 
@@ -150,14 +156,14 @@ export default function PracticeInterviewPage() {
     // Fallback: hitung dari answers jika totalScore belum diset
     const answers = interview.answers || [];
     const totalQuestions = interview.questionSet?.questions?.length || 0;
-    
+
     if (totalQuestions === 0) return 0;
-    
+
     const totalScore = answers.reduce(
       (sum, answer) => sum + (answer.score || 0),
       0
     );
-    
+
     // Calculate average based on TOTAL questions
     // (totalScore / totalQuestions) * 10
     return Math.round((totalScore / totalQuestions) * 10);
