@@ -23,14 +23,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Eye,
-  RotateCcw,
-  FileText,
-  Sparkles,
-  Calendar,
-  Link,
-} from "lucide-react";
+import { Eye, RotateCcw, FileText, Sparkles, Calendar } from "lucide-react";
+import Link from "next/link";
 
 type InterviewSession = {
   id: string;
